@@ -1,0 +1,47 @@
+
+
+<Home>:
+    MDFloatLayout:
+        MDBoxLayout:
+            size: root.size
+            pos: root.pos
+            MDNavigationRail:
+                id: nav_rail
+                type: "unselected"
+                MDNavigationRailItem:
+                    id: dashboard_item
+                    on_active: root.goto_dashboard(*args)
+                    MDNavigationRailItemIcon:
+                        icon: "view-dashboard-outline"
+                MDNavigationRailItem:
+                    id: task_item
+                    on_active: root.goto_task(*args)
+                    MDNavigationRailItemIcon:
+                        icon: "list-box-outline"
+                MDNavigationRailItem:
+                    id: finished_item
+                    on_active: root.goto_finished(*args)
+                    MDNavigationRailItemIcon:
+                        icon: "archive-outline"
+                MDNavigationRailItem:
+                    id: group_item
+                    on_active: root.goto_group(*args)
+                    MDNavigationRailItemIcon:
+                        icon: "account-group-outline"
+                MDNavigationRailItem:
+                    id: inbox_item
+                    on_active: root.goto_inbox(*args)
+                    MDNavigationRailItemIcon:
+                        icon: "inbox-outline"
+            MDCard:
+                MDBoxLayout:
+                    orientation: "vertical"
+                    MDLabel:
+                        id: lbl_year
+                    MDBoxLayout:
+                        MDLabel:
+                            id: lbl_month
+                        MDButton:
+                            text: "Novo evento"
+                    MDGridLayout:
+                        id: calendar

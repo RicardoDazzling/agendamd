@@ -1,0 +1,49 @@
+
+
+<RegisterScreen>:
+    orientation: "vertical"
+    LoginCard:
+        LoginLabel:
+            text: "Registrar"
+        LoginTextField:
+            id: tf_name
+            next: tf_email
+            MDTextFieldLeadingIcon:
+                icon: "account-details-outline"
+            MDTextFieldHintText:
+                text: "Nome"
+            MDTextFieldHelperText:
+                id: help_name
+                mode: "persistent"
+        LoginTextField:
+            id: tf_email
+            next: tf_password
+            MDTextFieldLeadingIcon:
+                icon: "email-outline"
+            MDTextFieldHintText:
+                text: "Email"
+            MDTextFieldHelperText:
+                id: help_email
+                mode: "persistent"
+        LoginPasswordTextField:
+            id: tf_password
+            next: btn_form
+            MDTextFieldLeadingIcon:
+                icon: "account-key-outline"
+            MDTextFieldHintText:
+                text: "Senha"
+            MDTextFieldHelperText:
+                id: help_password
+                mode: "persistent"
+        LoginFormButton:
+            id: btn_form
+            on_release:
+                root.register(tf_name, help_name, tf_email, help_email, tf_password, help_password)
+            MDButtonText:
+                text: "Registrar"
+                pos_hint: {"center_x": .5, "center_y": .5}
+        KLCheckbox:
+    LoginTextButton:
+        on_release: root.goto_login(*args)
+        MDButtonText:
+            text: "Já registrado?"

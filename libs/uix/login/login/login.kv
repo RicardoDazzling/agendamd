@@ -1,0 +1,39 @@
+
+
+<LoginScreen>:
+    orientation: "vertical"
+    LoginCard:
+        LoginLabel:
+            text: "Login"
+        LoginTextField:
+            id: tf_email
+            next: tf_password
+            MDTextFieldHintText:
+                text: "Email"
+            MDTextFieldLeadingIcon:
+                icon: "email-outline"
+            MDTextFieldHelperText:
+                id: help_email
+                mode: "persistent"
+        LoginPasswordTextField:
+            id: tf_password
+            next: btn_form
+            MDTextFieldHintText:
+                text: "Senha"
+            MDTextFieldLeadingIcon:
+                icon: "account-key-outline"
+            MDTextFieldHelperText:
+                id: help_password
+                mode: "persistent"
+        LoginFormButton:
+            id: btn_form
+            on_release:
+                root.login(tf_email, help_email, tf_password, help_password)
+            MDButtonText:
+                text: "Entrar"
+                pos_hint: {"center_x": .5, "center_y": .5}
+        KLCheckbox:
+    LoginTextButton:
+        on_release: root.goto_register(*args)
+        MDButtonText:
+            text: "Não possui uma conta?"

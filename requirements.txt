@@ -1,0 +1,8 @@
+appdirs
+kivy
+kivymd
+trio
+numpy
+pandas
+requests
+urllib3
