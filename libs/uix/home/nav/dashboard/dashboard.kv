@@ -1,0 +1,29 @@
+
+
+<Dashboard>:
+    MDCard:
+        pos_hint: {"center_x": .5, "center_y": .5}
+        padding: "20dp"
+        size_hint: .9, .9
+        orientation: "vertical"
+        spacing: "20dp"
+        MDLabel:
+            id: lbl_year
+        MDLabel:
+            id: lbl_month
+        MDRelativeLayout:
+            id: calendar_header
+        MDScrollView:
+            do_scroll_x: False
+            MDRelativeLayout:
+                id: calendar
+                size_hint_y: None
+                height: root.cell_height * 25
+    MDFabButton:
+        icon: "plus-outline"
+        style: "standard"
+        x: root.width - self.width - dp(50)
+        y: dp(50)
+        on_release:
+            self.icon = "plus"
+            root.add_event(*args)

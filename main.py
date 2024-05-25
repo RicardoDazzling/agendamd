@@ -29,7 +29,7 @@ import trio
 from kivy.properties import DictProperty, ObjectProperty
 from logging import getLogger, WARNING
 from kivymd.theming import ThemeManager
-from kivy.uix.screenmanager import NoTransition, WipeTransition
+from kivy.uix.screenmanager import NoTransition
 
 from libs.applibs.utils import log
 
@@ -53,9 +53,11 @@ class SPyBApp(MDApp):
 
     KV_FILES = [
         os.path.join(os.getcwd(), "libs\\uix\\components\\login\\login_components.kv"),
+        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\calendar_icon\\calendar_item.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\login\\login\\login.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\login\\register\\register.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\home\\home.kv"),
+        os.path.join(os.getcwd(), "libs\\uix\\home\\nav\\dashboard\\dashboard.kv"),
     ]
 
     CLASSES = {
@@ -64,9 +66,12 @@ class SPyBApp(MDApp):
         "LoginTextField": "libs.uix.components.login",
         "LoginPasswordTextField": "libs.uix.components.login",
         "LoginFormButton": "libs.uix.components.login",
+        "CheckIcon": "libs.uix.components.home",
+        "CalendarItem": "libs.uix.components.home",
         "LoginScreen": "libs.uix.login",
         "RegisterScreen": "libs.uix.login",
         "Home": "libs.uix.home",
+        "Dashboard": "libs.uix.home.nav",
     }
 
     current_user = DictProperty(None)

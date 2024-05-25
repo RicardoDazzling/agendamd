@@ -1,11 +1,22 @@
 import configparser
 import os
 import re
+from typing import Optional
+
 import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta
 from hashlib import sha256
 
 from libs.applibs.exceptions import UserNotExistException, EmptyFieldException, EMailException, PasswordException, \
     NameException
+
+
+def read_numpy(path):
+    if os.path.exists(path):
+        with open(path, 'rb') as file:
+            return np.load(file)  # ['name', 'email', 'password']
+    return None
 
 
 class DB:
@@ -13,6 +24,7 @@ class DB:
         self.cache_dir = os.path.join(os.getenv("CACHE_DIR"), 'db')
         self.config_file = os.path.join(os.getenv("CACHE_DIR"), 'config.ini')
         self.config = configparser.ConfigParser()
+        self.this_month_df = None
         if os.path.exists(self.config_file):
             self.config.read(self.config_file)
         else:
@@ -20,6 +32,9 @@ class DB:
             self.save_config()
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
+        __tasks_folder = os.path.join(self.cache_dir, 'tasks')
+        if not os.path.exists(__tasks_folder):
+            os.makedirs(__tasks_folder)
         try:
             self._user = self._user_file
         except FileNotFoundError:
@@ -52,6 +67,51 @@ class DB:
         self._user_file = self._user
 
     @property
+    def dashboard_tasks(self) -> Optional[pd.DataFrame]:
+        __tasks_folder = os.path.join(self.cache_dir, 'tasks')
+        __now = datetime.today()
+        __after_days = __now + timedelta(days=6)
+        if self.this_month_df is not None:
+            __df = self.this_month_df.copy()
+        else:
+            __before = __now - timedelta(days=30)
+            __after = __now + timedelta(days=30)
+            __up_a_month = __now.month != __after.month
+            __path = [f"{__before.year}_{__before.month}", f"{__now.year}_{__now.month}", f"{__after.year}_{__after.month}"]
+
+            __df = None
+            for folder in __path:
+                __month_folder = os.path.join(__tasks_folder, folder)
+                if not os.path.exists(__month_folder):
+                    continue
+                __title = read_numpy(os.path.join(__month_folder, 'title.npy'))
+                __start = read_numpy(os.path.join(__month_folder, 'start.npy'))
+                __end = read_numpy(os.path.join(__month_folder, 'end.npy'))
+                __description = read_numpy(os.path.join(__month_folder, 'description.npy'))
+                __tag = read_numpy(os.path.join(__month_folder, 'tag.npy'))
+                __closed = read_numpy(os.path.join(__month_folder, 'closed.npy'))
+                __idf = pd.DataFrame({'title': __title,
+                                      'start': __start,
+                                      'end': __end,
+                                      'description': __description,
+                                      'tag': __tag,
+                                      'closed': __closed})
+                __df = __idf if __df is None else __df.set_index('start').join(__idf.set_index('start'))
+
+            self.this_month_df = None if __df is None else __df.copy()
+
+        if __df is None:
+            return None
+        return __df.loc[((__df['start'] > __now.timestamp()) &
+                        (__df['start'] < __after_days.timestamp())) |
+                        ((__df['end'] > __now.timestamp()) &
+                        (__df['end'] < __after_days.timestamp()))]
+
+    def add_task(self, title: str, start: int, duration: int, description: str, tag: int):
+        __tasks_folder = os.path.join(self.cache_dir, 'tasks')
+        __array = np.array([])
+
+    @property
     def keep(self) -> bool:
         return self.config.getboolean('main', 'KEEP_LOGGED')
 
@@ -68,10 +128,10 @@ class DB:
     @property
     def _user_file(self) -> np.ndarray:
         __user_file = os.path.join(self.cache_dir, 'user.npy')
-        if os.path.exists(__user_file):
-            with open(__user_file, 'rb') as file:
-                return np.load(file)  # ['name', 'email', 'password']
-        raise FileNotFoundError("User file not found.")
+        __np = read_numpy(__user_file)
+        if __np is None:
+            raise FileNotFoundError("User file not found.")
+        return __np
 
     @_user_file.setter
     def _user_file(self, val: np.ndarray) -> None:

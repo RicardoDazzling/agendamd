@@ -1,0 +1,40 @@
+
+
+<CalendarItem>:
+    style: "elevated"
+    padding: "20dp"
+    size_hint: None, None
+    spacing: "20dp"
+    MDRelativeLayout:
+        id: relative_layout
+        size_hint: (1, 1)
+        CheckIcon:
+            id: check_icon
+            canvas:
+                opacity: .5 if root.closed else 0
+        MDBoxLayout:
+            size_hint: (1, 1)
+            spacing: "20dp"
+            orientation: "vertical"
+            MDLabel:
+                id: lbl_title
+                font_style: "Title"
+                role: "large"
+                text: root.title
+            MDLabel:
+                id: lbl_description
+                font_style: "Body"
+                role: "large"
+                halign: "justify"
+                text: root.description
+            MDBoxLayout:
+                MDLabel:
+                    id: lbl_duration
+                    font_style: "Body"
+                    role: "small"
+                MDLabel:
+                    id: lbl_tag
+                    font_style: "Body"
+                    role: "small"
+                    halign: "right"
+                    text: root.tag

@@ -69,3 +69,6 @@ temp
 /kivymd/tools/release/*.zip
 /kivymd/tools/release/temp
 /kivymd/_version.py
+
+tests
+tests/*
