@@ -4,37 +4,42 @@
     style: "elevated"
     padding: "20dp"
     size_hint: None, None
-    spacing: "20dp"
     MDRelativeLayout:
         id: relative_layout
         size_hint: (1, 1)
         CheckIcon:
             id: check_icon
-            canvas:
-                opacity: .5 if root.closed else 0
         MDBoxLayout:
             size_hint: (1, 1)
-            spacing: "20dp"
+            spacing: "5dp"
             orientation: "vertical"
-            MDLabel:
-                id: lbl_title
-                font_style: "Title"
-                role: "large"
-                text: root.title
-            MDLabel:
-                id: lbl_description
-                font_style: "Body"
-                role: "large"
-                halign: "justify"
-                text: root.description
+            MDBoxLayout:
+                id: item_header
+                spacing: "5dp"
+                MDLabel:
+                    id: lbl_title
+                    font_style: "Title"
+                    role: "small"
+                    text:
+                        root.title if root.title is not None else ''
+            MDBoxLayout:
+                id: box_description
+                MDLabel:
+                    id: lbl_description
+                    font_style: "Body"
+                    role: "small"
+                    halign: "justify"
+                    text:
+                        root.description if root.description is not None else ''
             MDBoxLayout:
                 MDLabel:
                     id: lbl_duration
-                    font_style: "Body"
+                    font_style: "Label"
                     role: "small"
                 MDLabel:
                     id: lbl_tag
-                    font_style: "Body"
+                    font_style: "Label"
                     role: "small"
                     halign: "right"
-                    text: root.tag
+                    text:
+                        root.tag if root.tag is not None else ''

@@ -1,10 +1,12 @@
-from kivy.metrics import dp
-from kivy.app import App
+from libs.applibs.db.users import USERS
+
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.snackbar import *
 from kivymd.uix.textfield import MDTextField, MDTextFieldHelperText
 
-from libs.applibs.exceptions.login import PasswordException, EMailException, UserNotExistException
+from libs.applibs.exceptions.login import PasswordException, EMailException, UserNotExistException, \
+    TooLongPasswordException
+from libs.uix.components.login.login_components import LoginSnackbar
+from globals import translator as _
 
 
 class LoginScreen(MDScreen):
@@ -13,37 +15,10 @@ class LoginScreen(MDScreen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.app = App.get_running_app()
-        self.snackbar = MDSnackbar(
-            MDSnackbarText(
-                text="Aviso!"
-            ),
-            MDSnackbarSupportingText(
-                text="Usuário não encontrado!"
-            ),
-            MDSnackbarButtonContainer(
-                MDSnackbarActionButton(
-                    MDSnackbarActionButtonText(
-                        text="Registrar"
-                    ),
-                    on_release=self.goto_register
-                ),
-                MDSnackbarCloseButton(
-                    icon="close",
-                    on_release=self.snackbar_dismiss,
-                ),
-                pos_hint={"center_y": 0.5}
-            ),
-            orientation="horizontal",
-            y=dp(24),
-            size_hint=(None, None),
-            width=dp(500),
-            pos_hint={"center_x": 0.5},
-        )
+        self.snackbar = LoginSnackbar(supporting_text="Usuário não encontrado!",
+                                      action_text="Registrar",
+                                      action=self.goto_register)
         self.bind(on_pre_leave=lambda _self: self.clean(True))
-
-    def snackbar_dismiss(self, *args):
-        self.snackbar.dismiss(*args)
 
     def login(self,
               tf_email: MDTextField,
@@ -53,27 +28,31 @@ class LoginScreen(MDScreen):
         __email = tf_email.text
         __password = tf_password.text
         self.clean()
-        if __email == "":
+        if __email.strip(" ") == "":
             tf_email.error = True
             tf_email.required = True
-            help_email.text = "Email é obrigatório!"
+            help_email.text = _("Email is required!")
             return
-        if __password == "":
+        if __password.strip(" ") == "":
             tf_password.error = True
             tf_password.required = True
-            help_password.text = "Senha é obrigatória!"
+            help_password.text = _("Password is required!")
             return
         try:
-            self.app.DB.login(email=__email, password=__password)
+            USERS.login(email=__email, password=__password, keep_logged=self.ids.cb_keep.active)
+            USERS.decrypt_database()
             self.goto_main()
         except UserNotExistException:
             self.snackbar.open()
         except EMailException:
             tf_email.error = True
-            help_email.text = "Email inválido."
+            help_email.text = _("Invalid Email.")
+        except TooLongPasswordException:
+            tf_password.error = True
+            help_password.text = _("Too long Password, max 32 characters.")
         except PasswordException:
             tf_password.error = True
-            help_password.text = "Senha inválida."
+            help_password.text = _("Invalid Password.")
 
     def clean(self, text: bool = False):
         if text:
@@ -81,7 +60,7 @@ class LoginScreen(MDScreen):
         self.ids.tf_email.error = self.ids.tf_password.error = False
         self.ids.help_email.text = self.ids.help_password.text = ""
 
-    def goto_register(self, *args):
+    def goto_register(self):
         register_screen = self.manager.get_screen("register")
 
         register_screen.ids.tf_email.text = self.ids.tf_email.text

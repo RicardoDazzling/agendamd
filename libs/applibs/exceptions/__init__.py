@@ -1,3 +1,4 @@
 from .db import DBException
-from .login import (LoginException, EMailException, PasswordException, UserNotExistException, EmptyFieldException,
-                    NameException)
+from .login import *
+from .tasks import *
+from .user import *

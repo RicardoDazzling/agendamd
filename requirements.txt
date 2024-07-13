@@ -1,9 +1,10 @@
 appdirs
+babel
 kivy
 kivymd
-trio
 numpy
 pandas
+pycryptodomex
 requests
+trio
 urllib3
-babel

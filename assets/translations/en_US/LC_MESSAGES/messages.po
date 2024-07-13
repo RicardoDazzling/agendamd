@@ -1,0 +1,193 @@
+# Translations template for AgendaMD.
+# Copyright (C) 2024 Ricardo Dazzling
+# This file is distributed under the same license as the AgendaMD project.
+# FIRST AUTHOR ricardodazzling@gmail.com, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: AgendaMD 0.2\n"
+"Report-Msgid-Bugs-To: ricardodazzling@gmail.com\n"
+"POT-Creation-Date: 2024-06-28 13:12-0300\n"
+"PO-Revision-Date: 2024-06-30 12:37-0300\n"
+"Last-Translator: Ricardo Állan <ricardodazzling@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.15.0\n"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:30
+msgid "Remove"
+msgstr "Remove"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:36
+msgid "Cancel"
+msgstr "Cancel"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:41
+msgid "Accept"
+msgstr "Accept"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:47
+msgid "Create or Update a Task"
+msgstr "Create or Update a Task"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:49
+msgid ""
+"In this window you can create or update a task. Next, you can see the "
+"task fields, please complete and edit then, and click in Accept. If your "
+"editing a task that exists and click in Remove, the task will be removed."
+msgstr ""
+"In this window you can create or update a task. Next, you can see the "
+"task fields, please complete and edit then, and click in Accept. If your "
+"editing a task that exists and click in Remove, the task will be removed."
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:87
+msgid "Errors occurred in the task creation:"
+msgstr "Errors occurred in the task creation:"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:105
+msgid "This tag doesn't exists, want to create this?"
+msgstr "This tag doesn't exists, want to create this?"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:110
+msgid "Create"
+msgstr "Create"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:128
+msgid "Are you sure?"
+msgstr "Are you sure?"
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:131
+msgid "After remove, this task can't be recovered."
+msgstr "After remove, this task can't be recovered."
+
+#: libs/uix/components/home/task_dialog/task_dialog.py:136
+msgid "Continue"
+msgstr "Continue"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:31
+msgid "Title"
+msgstr "Title"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:43
+msgid "Date"
+msgstr "Date"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:53
+msgid "Start"
+msgstr "Start"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:63
+msgid "End"
+msgstr "End"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:70
+msgid "Description"
+msgstr "Description"
+
+#: libs/uix/components/home/task_dialog/task_dialog_content.py:84
+msgid "Tag"
+msgstr "Tag"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:13
+msgid "Title need to stay between 3 and {0} characters"
+msgstr "Title need to stay between 3 and {0} characters"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:21
+msgid "Date is required"
+msgstr "Date is required"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:25
+msgid "Start Time is required"
+msgstr "Start Time is required"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:29
+msgid "End Time is required"
+msgstr "End Time is required"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:33
+msgid "The task duration require 15 minutes or more"
+msgstr "The task duration require 15 minutes or more"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:37
+msgid "The description can't exceed {0} characters"
+msgstr "The description can't exceed {0} characters"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:45
+msgid "Unknown Tag"
+msgstr "Unknown Tag"
+
+#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:49
+msgid "The Tag name can't exceed {0} characters"
+msgstr "The Tag name can't exceed {0} characters"
+
+#: libs/uix/components/keep_logged_checkbox/klcheckbox.py:22
+msgid "Keep logged in."
+msgstr "Keep logged in."
+
+#: libs/uix/login/login/login.kv:7
+msgid "Login"
+msgstr "Login"
+
+#: libs/uix/login/login/login.kv:12 libs/uix/login/register/register.kv:24
+msgid "Email"
+msgstr "Email"
+
+#: libs/uix/login/login/login.kv:22 libs/uix/login/register/register.kv:34
+msgid "Password"
+msgstr "Password"
+
+#: libs/uix/login/login/login.kv:35
+msgid "Login in"
+msgstr "Login in"
+
+#: libs/uix/login/login/login.kv:42
+msgid "Not registered?"
+msgstr "Not registered?"
+
+#: libs/uix/login/login/login.py:34 libs/uix/login/register/register.py:47
+msgid "Email is required!"
+msgstr "Email is required!"
+
+#: libs/uix/login/login/login.py:39 libs/uix/login/register/register.py:50
+msgid "Password is required!"
+msgstr "Password is required!"
+
+#: libs/uix/login/login/login.py:49 libs/uix/login/register/register.py:58
+msgid "Invalid Email."
+msgstr "Invalid Email."
+
+#: libs/uix/login/login/login.py:52 libs/uix/login/register/register.py:64
+msgid "Too long Password, max 32 characters."
+msgstr "Too long Password, max 32 characters."
+
+#: libs/uix/login/login/login.py:55
+msgid "Invalid Password."
+msgstr "Invalid Password."
+
+#: libs/uix/login/register/register.kv:7 libs/uix/login/register/register.kv:45
+msgid "Register"
+msgstr "Register"
+
+#: libs/uix/login/register/register.kv:14
+msgid "Name"
+msgstr "Name"
+
+#: libs/uix/login/register/register.kv:52
+msgid "Already registered?"
+msgstr "Already registered?"
+
+#: libs/uix/login/register/register.py:38
+msgid "Name is required!"
+msgstr "Name is required!"
+
+#: libs/uix/login/register/register.py:41 libs/uix/login/register/register.py:61
+msgid "Name not alphabetic."
+msgstr "Name not alphabetic."
+
+#: libs/uix/login/register/register.py:44
+msgid "Name need to stay between three and eighty characters."
+msgstr "Name need to stay between three and eighty characters."
+

@@ -1,2 +1,2 @@
 from .keep_logged_checkbox import KLCheckbox
-from .trailing_icon_button import MDTextFieldTrailingIconButton
+from .textfields.trailing_icon_button import MDTextFieldTrailingIconButton

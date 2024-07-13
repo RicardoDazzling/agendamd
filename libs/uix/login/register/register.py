@@ -1,14 +1,20 @@
-from kivy.app import App
+from libs.applibs.db.users import USERS
+
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.textfield import MDTextField, MDTextFieldHelperText
 
-from libs.applibs.exceptions.login import EMailException, NameException
+from libs.applibs.exceptions.login import EMailException, NameException, UserAlreadyExistsException, \
+    TooLongPasswordException
+from libs.uix.components.login.login_components import LoginSnackbar
+from globals import translator as _
 
 
 class RegisterScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.app = App.get_running_app()
+        self.snackbar = LoginSnackbar(supporting_text="Usuário já existe!",
+                                      action_text="Login",
+                                      action=self.goto_login)
         self.bind(on_pre_leave=lambda _self: self.clean(True))
 
     def register(self,
@@ -25,34 +31,35 @@ class RegisterScreen(MDScreen):
         __name_is_empty = __name == ""
         __email_is_empty = __email == ""
         __password_is_empty = __password == ""
-        __name_is_not_alpha = not __name.isalpha()
         __name_out_of_range = not (3 <= len(__name) <= 80)
         if __name_is_empty:
             tf_name.error = True
-            help_name.text = "Nome é obrigatório!"
-        elif __name_is_not_alpha:
-            tf_name.error = True
-            help_name.text = "Nome só pode conter caracteres alfabéticos."
+            help_name.text = _("Name is required!")
         elif __name_out_of_range:
             tf_name.error = True
-            help_name.text = "Nome precisa ter mais que três e menos que oitenta caracteres."
+            help_name.text = _("Name need to stay between three and eighty characters.")
         if __email_is_empty:
             tf_email.error = True
-            help_email.text = "Email é obrigatório!"
+            help_email.text = _("Email is required!")
         if __password_is_empty:
             tf_password.error = True
-            help_password.text = "Senha é obrigatória!"
-        if __name_is_empty or __name_is_not_alpha or __name_out_of_range or __email_is_empty or __password_is_empty:
+            help_password.text = _("Password is required!")
+        if __name_is_empty or __name_out_of_range or __email_is_empty or __password_is_empty:
             return
         try:
-            self.app.DB.register(name=__name, email=__email, password=__password)
+            USERS.register(__name, __email, __password, keep_logged=self.ids.cb_keep.active)
             self.goto_main()
         except EMailException:
             tf_email.error = True
-            help_email.text = "Email inválido."
+            help_email.text = _("Invalid Email.")
         except NameException:
             tf_name.error = True
-            help_name.text = "Nome não é alfabético."
+            help_name.text = _("Name not alphabetic.")
+        except TooLongPasswordException:
+            tf_password.error = True
+            help_password.text = _("Too long Password, max 32 characters.")
+        except UserAlreadyExistsException:
+            self.snackbar.open()
 
     def clean(self, text: bool = False):
         if text:
@@ -60,7 +67,7 @@ class RegisterScreen(MDScreen):
         self.ids.tf_email.error = self.ids.tf_password.error = self.ids.tf_name.error = False
         self.ids.help_email.text = self.ids.help_password.text = self.ids.help_name.text = ""
 
-    def goto_login(self, *args):
+    def goto_login(self):
         login_screen = self.manager.get_screen("login")
 
         login_screen.ids.tf_email.text = self.ids.tf_email.text

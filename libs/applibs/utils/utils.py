@@ -1,6 +1,59 @@
+import os
+import logging
+from time import mktime
+
+import numpy as np
+
 from typing import Optional, Union, Literal
 from datetime import datetime, timedelta, date
-import logging
+
+from Cryptodome.Cipher import AES
+from Cryptodome.Hash import MD5
+
+
+def read_numpy(path):
+    if os.path.exists(path):
+        with open(path, 'rb') as file:
+            return np.load(file)  # ['name', 'email', 'password']
+    return None
+
+
+def md5_hash(string: str) -> bytes:
+    return MD5.new(string.encode("utf-8")).digest()
+
+
+def encrypt(filepath: str, key: bytes, iv: bytes, remove_npy: bool = True) -> str:
+    __enfile = filepath + ".amc"
+    __aes = AES.new(key, AES.MODE_CFB, iv=iv)
+
+    with open(filepath, 'rb') as file:
+        __file_val = file.read()
+    if remove_npy:
+        os.remove(filepath)
+
+    __enfile_val = __aes.encrypt(__file_val)
+
+    with open(__enfile, 'wb') as file:
+        file.write(__enfile_val)
+
+    return __enfile
+
+
+def decrypt(en_filepath: str, key: bytes, iv: bytes, remove_amc: bool = False) -> str:
+    __file = en_filepath.replace('.amc', '')
+    __aes = AES.new(key, AES.MODE_CFB, iv=iv)
+
+    with open(en_filepath, 'rb') as file:
+        __enfile_val = file.read()
+    if remove_amc:
+        os.remove(en_filepath)
+
+    __file_val = __aes.decrypt(__enfile_val)
+
+    with open(__file, 'wb') as file:
+        file.write(__file_val)
+
+    return __file
 
 
 def log(self, message: str, log_type: Literal['error', 'info', 'warning'] = 'error'):
@@ -11,6 +64,29 @@ def log(self, message: str, log_type: Literal['error', 'info', 'warning'] = 'err
         logging.info(f'{name}: {message}')
     elif log_type == 'warning':
         logging.warning(f'{name}: {message}')
+
+
+def array_size(integer: int) -> Literal["B", "H", "I", "L"]:
+    if integer < 0:
+        raise ValueError("Integer out of range for unsigned numpy data type.")
+    elif integer < 256:
+        return "B"
+    elif integer < 65_536:
+        return "H"
+    elif integer < 4_294_967_295:
+        return "I"
+    elif integer < 18_446_744_073_709_551_615:
+        return "L"
+    else:
+        raise ValueError("Too longer integer.")
+
+
+def get_datestamp_from_date(date_object: date) -> int:
+    return int(mktime(date_object.timetuple())) // 86400
+
+
+def get_date_from_datestamp(datestamp: int) -> date:
+    return date.fromtimestamp(datestamp * 86400)
 
 
 def get_timestamp(datetime_var: Optional[datetime] = None) -> int:

@@ -12,27 +12,18 @@
                 id: dashboard_item
                 on_active: root.goto_dashboard(*args)
                 MDNavigationRailItemIcon:
-                    icon: "view-dashboard-outline"
+                    icon: "view-dashboard"
             MDNavigationRailItem:
-                id: task_item
+                id: list_item
                 on_active: root.goto_task(*args)
                 MDNavigationRailItemIcon:
                     icon: "list-box-outline"
-            MDNavigationRailItem:
-                id: finished_item
-                on_active: root.goto_finished(*args)
-                MDNavigationRailItemIcon:
-                    icon: "archive-outline"
-            MDNavigationRailItem:
-                id: group_item
-                on_active: root.goto_group(*args)
-                MDNavigationRailItemIcon:
-                    icon: "account-group-outline"
             MDNavigationRailItem:
                 id: inbox_item
                 on_active: root.goto_inbox(*args)
                 MDNavigationRailItemIcon:
                     icon: "inbox-outline"
         MainScreenManager:
+            id: screen_manager
             Dashboard:
                 name: "dashboard"

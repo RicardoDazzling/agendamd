@@ -1,18 +1,19 @@
 import os
 
 # Environments Variables
-
-from appdirs import user_cache_dir
 import sys
 
-from libs.applibs.db import DB
+from settings import settings
 
-os.environ["NAME"] = "AgendaMD"
-os.environ["CACHE_DIR"] = user_cache_dir(os.getenv("NAME").lower())
-os.environ['KIVY_HOME'] = os.path.join(os.getenv("CACHE_DIR"), '.kivy')
-__pycache__ = os.path.join(os.getenv("CACHE_DIR"), 'pycache')
+os.environ["NAME"] = settings.NAME
+os.environ["CACHE_DIR"] = settings.CACHE_DIR
+os.environ['KIVY_HOME'] = os.path.join(settings.CACHE_DIR, '.kivy')
+__pycache__ = os.path.join(settings.CACHE_DIR, 'pycache')
 os.environ["PYTHONPYCACHEPREFIX"] = __pycache__
 sys.pycache_prefix = __pycache__
+
+from globals import USERS
+from libs.devlibs import translator
 
 # Kaki Dependencies:
 # import os
@@ -26,11 +27,14 @@ from kivy.lang import Builder
 # My Dependencies.
 import trio
 
-from kivy.properties import DictProperty, ObjectProperty
-from logging import getLogger, WARNING
-from kivymd.theming import ThemeManager
 from kivy.uix.screenmanager import NoTransition
+from kivy.properties import ObjectProperty
+from kivy.lang import global_idmap
+from kivymd.theming import ThemeManager
+from logging import getLogger, WARNING
+from typing import Optional
 
+from libs.devlibs import Translator
 from libs.applibs.utils import log
 
 # Disable debug requests log:
@@ -39,7 +43,7 @@ getLogger("urllib3").setLevel(WARNING)
 getLogger("PIL").setLevel(WARNING)
 
 
-class SPyBApp(MDApp):
+class AgendaMDApp(MDApp):
 
     # DEBUG = 1  # set this to 0 make live app not working
 
@@ -47,13 +51,14 @@ class SPyBApp(MDApp):
 
     CURRENT_DIR = os.getcwd()
 
-    NAME = os.getenv("NAME")
+    NAME = settings.NAME
 
-    CACHE_DIR = os.getenv("CACHE_DIR")
+    CACHE_DIR = settings.CACHE_DIR
 
     KV_FILES = [
         os.path.join(os.getcwd(), "libs\\uix\\components\\login\\login_components.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\calendar_icon\\calendar_item.kv"),
+        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\calendar_item\\calendar_item.kv"),
+        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\minimized_calendar_item\\minimized_calendar_item.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\login\\login\\login.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\login\\register\\register.kv"),
         os.path.join(os.getcwd(), "libs\\uix\\home\\home.kv"),
@@ -62,25 +67,27 @@ class SPyBApp(MDApp):
 
     CLASSES = {
         "KLCheckbox": "libs.uix.components",
-        "MDTextFieldTrailingIconButton": "libs.uix.components",
+        "MDTextFieldTrailingIconButton": "libs.uix.components.textfields",
+        "ComboTextField": "libs.uix.components.textfields",
+        "DateTimeTextField": "libs.uix.components.textfields",
         "LoginTextField": "libs.uix.components.login",
         "LoginPasswordTextField": "libs.uix.components.login",
         "LoginFormButton": "libs.uix.components.login",
         "CheckIcon": "libs.uix.components.home",
+        "BaseCalendarItem": "libs.uix.components.home",
         "CalendarItem": "libs.uix.components.home",
+        "CalendarItemNav": "libs.uix.components.home",
+        "MinimizedCalendarItem": "libs.uix.components.home",
         "LoginScreen": "libs.uix.login",
         "RegisterScreen": "libs.uix.login",
         "Home": "libs.uix.home",
         "Dashboard": "libs.uix.home.nav",
     }
 
-    current_user = DictProperty(None)
-
+    translator: Optional[Translator] = ObjectProperty(None)
     manager = ObjectProperty(None)
 
     progress_bar = None
-
-    DB = DB()
 
     def __init__(self, **kwargs):
         self.SCREENS = {}
@@ -90,15 +97,8 @@ class SPyBApp(MDApp):
         super().__init__(**kwargs)
 
     async def app_func(self):
-        '''trio needs to run a function, so this is it. '''
 
         async with trio.open_nursery() as nursery:
-            '''In trio you create a nursery, in which you schedule async
-            functions to be run by the nursery simultaneously as tasks.
-
-            This will run all two methods starting in random order
-            asynchronously and then block until they are finished or canceled
-            at the `with` level. '''
             self.nursery = nursery
 
             async def run_wrapper(*args):
@@ -109,7 +109,7 @@ class SPyBApp(MDApp):
             nursery.start_soon(run_wrapper)
 
     def build(self):
-        super(SPyBApp, self).build()
+        super(AgendaMDApp, self).build()
         Builder.load_file(os.path.join(os.getcwd(), "libs/uix/screenmanager/screenmanager.kv"))
         Factory.register("MainScreenManager",  module="libs.uix.screenmanager")
         self.manager = Factory.MainScreenManager()
@@ -118,8 +118,9 @@ class SPyBApp(MDApp):
         return self.manager
 
     def on_start(self):
-        super(SPyBApp, self).on_start()
+        super(AgendaMDApp, self).on_start()
         Window.show()
+        self.translation_init()
         self.nursery.start_soon(self._build)
 
     async def _build(self, *args):
@@ -134,22 +135,34 @@ class SPyBApp(MDApp):
         await self.start()
 
     async def start(self):
-        self.SCREENS['home'] = Factory.Home(name="home")
-        self.SCREENS['register'] = Factory.RegisterScreen(name="register")
+        __switch_to_home = False
+        if USERS.logged():
+            if USERS.user.keep_logged:
+                USERS.decrypt_database()
+                __switch_to_home = True
         self.SCREENS['login'] = Factory.LoginScreen(name="login")
-        self.manager.add_widget(self.SCREENS['home'])
-        self.manager.add_widget(self.SCREENS['register'])
+        self.SCREENS['register'] = Factory.RegisterScreen(name="register")
+        self.SCREENS['home'] = Factory.Home(name="home")
         self.manager.add_widget(self.SCREENS['login'])
+        self.manager.add_widget(self.SCREENS['register'])
+        self.manager.add_widget(self.SCREENS['home'])
 
-        if (self.DB.logged() and not self.DB.keep) or not self.DB.logged():
-            self.manager.switch_to("login", transition=NoTransition())
-            return
+        if __switch_to_home:
+            self.manager.switch_to("home", transition=NoTransition())
+
+    def on_stop(self):
+        if USERS.logged():
+            USERS.encrypt_database()
+
+    def translation_init(self):
+        self.translator = translator
+        global_idmap['_'] = translator
 
 
 if __name__ == "__main__":
     try:
         log('Master', 'Initializing App.', 'info')
-        app = SPyBApp()
+        app = AgendaMDApp()
         log('Master', 'Running App.', 'info')
         trio.run(app.app_func)
     finally:

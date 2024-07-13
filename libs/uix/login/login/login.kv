@@ -4,12 +4,12 @@
     orientation: "vertical"
     LoginCard:
         LoginLabel:
-            text: "Login"
+            text: _("Login")
         LoginTextField:
             id: tf_email
             next: tf_password
             MDTextFieldHintText:
-                text: "Email"
+                text: _("Email")
             MDTextFieldLeadingIcon:
                 icon: "email-outline"
             MDTextFieldHelperText:
@@ -19,21 +19,24 @@
             id: tf_password
             next: btn_form
             MDTextFieldHintText:
-                text: "Senha"
+                text: _("Password")
             MDTextFieldLeadingIcon:
                 icon: "account-key-outline"
             MDTextFieldHelperText:
                 id: help_password
                 mode: "persistent"
+            MDTextFieldMaxLengthText:
+                max_text_length: 32
         LoginFormButton:
             id: btn_form
             on_release:
                 root.login(tf_email, help_email, tf_password, help_password)
             MDButtonText:
-                text: "Entrar"
+                text: _("Login in")
                 pos_hint: {"center_x": .5, "center_y": .5}
         KLCheckbox:
+            id: cb_keep
     LoginTextButton:
-        on_release: root.goto_register(*args)
+        on_release: root.goto_register()
         MDButtonText:
-            text: "Não possui uma conta?"
+            text: _("Not registered?")

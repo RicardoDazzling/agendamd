@@ -66,6 +66,10 @@ temp
 .pytest_cache
 .coverage
 
+# Translation
+*.mo
+babel.ini
+
 /kivymd/tools/release/*.zip
 /kivymd/tools/release/temp
 /kivymd/_version.py

@@ -20,5 +20,13 @@ class UserNotExistException(LoginException):
     pass
 
 
+class UserAlreadyExistsException(LoginException):
+    pass
+
+
+class TooLongPasswordException(LoginException):
+    pass
+
+
 class EmptyFieldException(LoginException):
     pass

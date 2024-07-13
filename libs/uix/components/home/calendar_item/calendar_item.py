@@ -1,41 +1,67 @@
-from kivy.metrics import dp
-from kivy.properties import StringProperty, NumericProperty, BooleanProperty
-from kivymd.uix.card import MDCard
-from datetime import datetime
-from babel.dates import format_datetime
-from ctypes import windll
-from locale import windows_locale
+from functools import partial
+from typing import Optional
+
+from kivy.clock import Clock
+from kivymd.uix.label import MDLabel
+
+from libs.uix.components.home.base_calendar_item import BaseCalendarItem
+
+from .calendar_item_nav import CalendarItemNav
 
 
-class CalendarItem(MDCard):
+class CalendarItem(BaseCalendarItem):
 
-    title = StringProperty()
-    start = NumericProperty()
-    end = NumericProperty()
-    description = StringProperty()
-    tag = StringProperty()
-    closed = BooleanProperty(False)
-    base_height = NumericProperty(dp(50))
+    def __init__(self, *args, **kwargs):
+        super(CalendarItem, self).__init__(*args, **kwargs)
 
-    def __init__(self, **kwargs):
-        super(CalendarItem, self).__init__(**kwargs)
-        self.bind(start=self.on_duration, end=self.on_duration, closed=self.on_closed)
-        self._language = windows_locale[windll.kernel32.GetUserDefaultUILanguage()]
+        self.bind(on_release=partial(self.dispatch, "on_item_release"),
+                  on_press=partial(self.dispatch, "on_item_press"))
+
+    def add_widget(self, widget, *args, **kwargs):
+        if isinstance(widget, CalendarItemNav):
+            for children in self.ids.item_header.children:
+                if isinstance(children, CalendarItemNav):
+                    self.ids.item_header.remove_widget(children)
+            self.ids.item_header.add_widget(widget)
+            return
+        super(CalendarItem, self).add_widget(widget, *args, **kwargs)
+
+    def remove_widget(self, widget):
+        if isinstance(widget, CalendarItemNav):
+            self.ids.item_header.remove_widget(widget)
+            return
+        super(CalendarItem, self).remove_widget(widget)
+
+    @staticmethod
+    def on_description(self, value: Optional[str]):
+        if value is None or value == "":
+            return
+
+        label = self.ids.get('lbl_description', None)
+        if self.height >= self.base_height and label is None:
+            self.ids['lbl_description'] = MDLabel(id='lbl_description',
+                                                  font_style="Body",
+                                                  role="small",
+                                                  halign="justify",
+                                                  text=self.description)
+            self.bind(description=self.ids['lbl_description'].setter('text'))
+            Clock.schedule_once(lambda x: self.ids.box_description.add_widget(self.ids.lbl_description))
+
+    def on_theme_text_color(self, instance, value):
+        if isinstance(value, str):
+            self.ids.check_icon.theme_icon_color = value
+            self.ids.lbl_title.theme_text_color = value
+            self.ids.lbl_description.theme_text_color = value
+            self.ids.lbl_duration.theme_text_color = value
+            self.ids.lbl_tag.theme_text_color = value
 
     def on_duration(self, *args):
-        __start_dt = datetime.fromtimestamp(self.start)
-        __end_dt = datetime.fromtimestamp(self.end)
+        if self.start is None or self.end is None:
+            return
+        super().on_duration(*args)
 
-        __delta = __end_dt - __start_dt
-        self.height = self.base_height * (__delta.total_seconds() / 60)
-
-        __duration = f"{
-                format_datetime(__start_dt, locale=self._language)
-            } - {
-                format_datetime(__end_dt, locale=self._language)
-            }"
-
-        self.ids.lbl_duration.text = __duration
+        self.height = self.base_height * ((self.end - self.start) / 60)
+        self.ids.lbl_duration.text = self.format_duration()
 
     def on_closed(self, *args):
         with self.ids.check_icon.canvas:

@@ -9,21 +9,39 @@
         spacing: "20dp"
         MDLabel:
             id: lbl_year
+            font_style: "Display"
+            role: "large"
+            adaptive_height: True
         MDLabel:
             id: lbl_month
-        MDRelativeLayout:
-            id: calendar_header
-        MDScrollView:
-            do_scroll_x: False
+            font_style: "Headline"
+            role: "large"
+            adaptive_height: True
+        MDBoxLayout:
+            size_hint: 1, 1
+            orientation: "vertical"
+            padding: "20dp"
+            radius: "10dp"
             MDRelativeLayout:
-                id: calendar
-                size_hint_y: None
-                height: root.cell_height * 25
+                id: calendar_header
+                size_hint: (1, None)
+                height: dp(80)
+                md_bg_color: app.theme_cls.surfaceContainerLowColor
+            MDScrollView:
+                id: scroll
+                do_scroll_x: False
+                size_hint: (1, 1)
+                MDRelativeLayout:
+                    id: calendar
+                    size_hint_y: None
+                    height: root.cell_height * 24
+                    md_bg_color: app.theme_cls.surfaceContainerLowestColor
     MDFabButton:
+        id: btn_task
         icon: "plus-outline"
         style: "standard"
         x: root.width - self.width - dp(50)
         y: dp(50)
         on_release:
             self.icon = "plus"
-            root.add_event(*args)
+            root.add_task(*args)
