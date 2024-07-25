@@ -25,8 +25,12 @@ class MinimizedCalendarItem(BaseCalendarItem):
                 raise TypeError("Item isn't from dict type.")
             self.set_properties_by_dict(arg)
 
+        __lbl = self.ids.get('lbl', None)
+        if __lbl is not None:
+            __lbl.text = self.title[0]
+
         self.item = CalendarItem(
-            args[0],
+            item=args[0],
             base_height=self.base_height,
             width=self.width,
             theme_text_color="Hint",
@@ -43,8 +47,9 @@ class MinimizedCalendarItem(BaseCalendarItem):
         self.item.bind(on_item_release=self._on_item_release,
                        on_item_press=self._on_item_press,
                        on_leave=self.on_item_leave)
+        self.bind(width=self.item.setter('width'))
 
-        self.base_height = (self.base_height / 4)
+        self.height = (self.base_height / 4)
 
     def get_index_by_dict(self, item: dict) -> int:
         for idx in range(len(self.title)):
@@ -109,14 +114,22 @@ class MinimizedCalendarItem(BaseCalendarItem):
             elif self.item_index > idx:
                 self.item_index -= 1
 
+    @staticmethod
+    def on_pos(self, value: list):
+        if self.item is not None and self.end:
+            self.item.pos = (
+                value[0],
+                ((24 - self.end[0] / 60) * self.base_height)
+            )
+
     def on_enter(self, *args):
-        if self.hover_visible:
+        if self.hover_visible and self.item.parent is None:
             self.parent.add_widget(self.item)
             self.item.hovering = True
             self.item.hover_visible = True
 
     def on_item_leave(self, *args):
-        if not self.item.hover_visible:
+        if not self.item.hover_visible and self.item.parent is not None:
             self.parent.remove_widget(self.item)
             self.hovering = False
             self.hover_visible = False
@@ -143,8 +156,12 @@ class MinimizedCalendarItem(BaseCalendarItem):
         self.item.tag = self.tag[index]
         self.item.closed = self.closed[index]
 
-    def _on_item_release(self, *args):
-        self.dispatch("on_item_release", *args)
+    def _on_item_release(self, instance: CalendarItem):
+        self.dispatch("on_item_release")
 
-    def _on_item_press(self, *args):
-        self.dispatch("on_item_press", *args)
+    def _on_item_press(self, instance: CalendarItem):
+        self.dispatch("on_item_press")
+
+    @property
+    def dict(self) -> dict:
+        return self.item.dict

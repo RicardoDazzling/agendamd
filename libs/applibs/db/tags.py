@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from typing import Optional
+from typing import Optional, Union
 
 from settings import settings
 from .tasks import TASKS
@@ -36,12 +36,12 @@ class Tags:
             raise TypeError("Other isn't a instance of str.")
         return self.add(other)
 
-    def __getitem__(self, item: str | int):
+    def __getitem__(self, item: Union[str, int]):
         if isinstance(item, int):
             return self.get(item)
         return super(Tags, self).__getattribute__(item)
 
-    def __setitem__(self, key: str | int, value):
+    def __setitem__(self, key: Union[str, int], value):
         if isinstance(key, int) and isinstance(value, str):
             self.update(key, value)
         else:
@@ -66,7 +66,7 @@ class Tags:
         self.save()
         return self._array.size - 1
 
-    def get(self, tag: str | int, multiple: bool = False) -> int | str | list[int]:
+    def get(self, tag: Union[str, int], multiple: bool = False) -> Union[int, str, list[int]]:
         USERS.logged(raise_exception=True)
         if isinstance(tag, str):
             if multiple:
@@ -107,7 +107,7 @@ class Tags:
         with open(self.datafile, "wb") as file:
             np.save(file, self._array, False, False)
         encrypt(self.datafile,
-                md5_hash(USERS.user.password),
+                md5_hash(USERS.user.password_string),
                 md5_hash(settings.NAME),
                 remove_npy=False)
 
@@ -121,7 +121,7 @@ class Tags:
                 raise ValueError("Tag data was corrupted.")
             logging.error("TAGS: Tag data was corrupted, trying to recover...")
             decrypt(self.datafile + '.amc',
-                    md5_hash(USERS.user.password),
+                    md5_hash(USERS.user.password_string),
                     md5_hash(settings.NAME))
             self.load(True)
 
@@ -130,7 +130,7 @@ class Tags:
         if self.datafile is not None:
             if os.path.exists(self.datafile + '.amc') and not os.path.exists(self.datafile):
                 decrypt(self.datafile + '.amc',
-                        md5_hash(USERS.user.password),
+                        md5_hash(USERS.user.password_string),
                         md5_hash(settings.NAME))
             if not os.path.exists(self.datafile):
                 self._array = np.array(["Padrão"], dtype="U80")

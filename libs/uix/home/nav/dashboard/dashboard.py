@@ -3,7 +3,7 @@ from typing import Union, Optional
 
 from kivy.app import App
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, NumericProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFabButton
 from kivymd.uix.divider import MDDivider
@@ -19,38 +19,34 @@ from libs.uix.components.home import CalendarItem, MinimizedCalendarItem, TaskDi
 from libs.applibs.utils import get_datestamp_from_date
 from globals import (
     TASKS,
-    USERS,
     TAGS,
     translator as _
 )
 
 
-class Dashboard(MDScreen):
-    _task_dialog: Optional[TaskDialog] = ObjectProperty(None)
+class DashboardScreen(MDScreen):
+    cell_width = NumericProperty(0)
     cell_height = dp(120)
+    _task_dialog: Optional[TaskDialog] = ObjectProperty(None)
     _grouped_tasks: list[dict[int, Union[list, dict, tuple]]] = [{}, {}, {}, {}, {}]
     _grouped_items: list[dict[int, Union[MinimizedCalendarItem, CalendarItem]]] = [{}, {}, {}, {}, {}]
     _loading: dict = {}
+    _tasks: Optional[DataFrame] = None
 
     def __init__(self, **kwargs):
-        super(Dashboard, self).__init__(**kwargs)
         self._app = App.get_running_app()
         self._datetime = datetime.now()
         self._task_dialog = TaskDialog()
-        __today = self._datetime.date()
-        self._tasks: DataFrame = TASKS[__today]
-        self._today_datestamp: int = get_datestamp_from_date(__today)
+        self._today_datestamp: int = get_datestamp_from_date(self._datetime.date())
+        super(DashboardScreen, self).__init__(**kwargs)
         TASKS.bind(on_add=self.on_task_add, on_update=self.on_task_update, on_remove=self.on_task_remove)
 
     def on_pre_enter(self, *args):
-        super(Dashboard, self).on_pre_enter(*args)
-        if USERS.logged() and USERS.user.keep_logged:
-            if self._calendar is not None:
-                self.enter()
-            else:
-                self._loading['enter'] = self.enter
+        super(DashboardScreen, self).on_pre_enter(*args)
+        if self._calendar is not None:
+            self.enter()
         else:
-            USERS.bind(on_login=self.enter)
+            self._loading['enter'] = self.enter
 
     _calendar: Optional[MDRelativeLayout] = ObjectProperty(None)
     _calendar_header: Optional[MDRelativeLayout] = ObjectProperty(None)
@@ -58,30 +54,33 @@ class Dashboard(MDScreen):
     _lbl_year: Optional[MDLabel] = ObjectProperty(None)
     _lbl_month: Optional[MDLabel] = ObjectProperty(None)
     _scroll: Optional[MDScrollView] = ObjectProperty(None)
+    _table: Optional[MDBoxLayout] = ObjectProperty(None)
 
     def on_ids(self, instance, value: dict):
         if isinstance(value, dict):
-            self._calendar: Optional[MDRelativeLayout] = value.get('calendar', None)
-            self._calendar_header: Optional[MDRelativeLayout] = value.get('calendar_header', None)
+            __calendar: Optional[MDRelativeLayout] = value.get('calendar', None)
+            __calendar_header: Optional[MDRelativeLayout] = value.get('calendar_header', None)
             self._btn_task: Optional[MDFabButton] = value.get('btn_task', None)
             self._lbl_year: Optional[MDLabel] = value.get('lbl_year', None)
             self._lbl_month: Optional[MDLabel] = value.get('lbl_month', None)
-            self._scroll: Optional[MDScrollView] = value.get('scroll', None)
+            __scroll: Optional[MDScrollView] = value.get('scroll', None)
+            __table: Optional[MDBoxLayout] = value.get('table', None)
+            if self._calendar is None and __calendar is not None:
+                self._calendar = __calendar
+                self._calendar.bind(width=self._update_width)
+                self._create_basics()
+            if __calendar_header is not None and self._calendar_header is None:
+                self._calendar_header = __calendar_header
+                self._update_header()
+            if __scroll is not None and self._scroll is None:
+                self._scroll = __scroll
+                self._scroll.bind(height=lambda i, v: self._scroll_to_now())
+                self._update_scroll_height(__table, __table.height)
+                self._scroll_to_now()
+            if __table is not None and self._table is None:
+                self._table = __table
+                __table.bind(height=self._update_scroll_height, padding=self._update_scroll_height)
             self._load()
-
-    def _load(self):
-        if self._calendar is not None and self._calendar_header is not None and self._btn_task is not None \
-                and self._lbl_year is not None and self._lbl_month is not None and self._scroll is not None:
-            if 'enter' in self._loading.keys():
-                self._loading.pop('enter')
-                if self._calendar.width == 100:
-                    def enter(instance, value):
-                        if value > 100:
-                            self.enter()
-                            instance.unbind(width=enter)
-                    self._calendar.bind(width=enter)
-                else:
-                    self.enter()
 
     def on_task_add(self, row: dict):
         __calendar: MDRelativeLayout = self._calendar
@@ -109,21 +108,13 @@ class Dashboard(MDScreen):
                     if 0 <= __start - __previous <= 15:
                         __tasks_draft[__previous] = [__collateral, row]
                         __calendar.remove_widget(__items_draft.pop(__previous))
-                        __items_draft[__previous] = MinimizedCalendarItem(
-                            *__tasks_draft[__previous],
-                            width=__cell_width,
-                            base_height=self.cell_height
-                        )
+                        __items_draft[__previous] = self.create_list_minimized_calendar_item(__tasks_draft[__previous])
                         __calendar.add_widget(__items_draft[__previous])
                         return
                     elif __collateral['start'] < __start < __collateral['end']:
                         __tasks_draft[__previous] = (__collateral, None)
                         __calendar.remove_widget(__items_draft.pop(__previous))
-                        __items_draft[__previous] = MinimizedCalendarItem(
-                            __tasks_draft[__previous][0],
-                            width=__cell_width,
-                            base_height=self.cell_height
-                        )
+                        __items_draft[__previous] = self.create_tuple_minimized_calendar_item(__tasks_draft[__previous])
                 elif isinstance(__collateral, list):
                     if 0 <= __start - __previous <= 15:
                         __tasks_draft[__previous].append(row)
@@ -155,41 +146,24 @@ class Dashboard(MDScreen):
                                 start=__other[0]['start'],
                                 other=__other,
                                 tasks_draft=__tasks_draft,
-                                items_draft=__items_draft,
-                                calendar=__calendar,
-                                cell_width=__cell_width,
-                                cell_height=self.cell_height
+                                items_draft=__items_draft
                             )
                         __tasks_draft[__start] = [row] + __collateral
                     else:
                         __tasks_draft[__start] = [row, __collateral]
-                    __items_draft[__start] = MinimizedCalendarItem(
-                        *__tasks_draft[__start],
-                        width=__cell_width,
-                        base_height=self.cell_height
-                    )
+                    __items_draft[__start] = self.create_list_minimized_calendar_item(__tasks_draft[__start])
                     __calendar.add_widget(__items_draft[__start])
                 else:
                     __tasks_draft[__start] = (row, None)
-                    __items_draft[__start] = MinimizedCalendarItem(
-                        row,
-                        width=__cell_width,
-                        base_height=self.cell_height
-                    )
+                    __items_draft[__start] = self.create_tuple_minimized_calendar_item(__tasks_draft[__start])
                 return
         __tasks_draft[__start] = row
-        __items_draft[__start] = CalendarItem(
-            row,
-            width=__cell_width,
-            base_height=self.cell_height
-        )
+        __items_draft[__start] = self.create_dict_calendar_item(__tasks_draft[__start])
         __calendar.add_widget(__items_draft[__start])
 
     def on_task_update(self, old: dict, new: dict):
-        __old_between = self._today_datestamp <= old['day'] < self._today_datestamp + 4
-        __new_between = self._today_datestamp <= new['day'] < self._today_datestamp + 4
-        old['tag'] = TAGS.get(old['tag'])
-        new['tag'] = TAGS.get(new['tag'])
+        __old_between = self._today_datestamp <= old['day'] < self._today_datestamp + 5
+        __new_between = self._today_datestamp <= new['day'] < self._today_datestamp + 5
         if not __old_between and not __new_between:
             return
         elif __old_between and not __new_between:
@@ -199,7 +173,16 @@ class Dashboard(MDScreen):
             self.on_task_add(new)
             return
         elif old['day'] == new['day'] and old['start'] == new['start'] and old['end'] == new['end']:
-            self._grouped_items[old['day'] - self._today_datestamp][old['start']].set_properties_by_dict(new, old)
+            old['tag'] = TAGS.get(old['tag'])
+            new['tag'] = TAGS.get(new['tag'])
+            __item = None
+            for i in range(old['start'], old['start'] - 16, -1):
+                __item = self._grouped_items[old['day'] - self._today_datestamp].get(old['start'], None)
+                if __item is not None:
+                    break
+            if __item is None:
+                raise IndexError("Unknown old item.")
+            __item.set_properties_by_dict(new, old)
             return
         self.on_task_remove(old)
         self.on_task_add(new)
@@ -229,11 +212,7 @@ class Dashboard(MDScreen):
                     if __can_maximize:
                         __calendar.remove_widget(__items_draft.pop(i))
                         __tasks_draft[i] = __tasks_draft[i][0]
-                        __items_draft[i] = CalendarItem(
-                            __tasks_draft[i],
-                            width=__cell_width,
-                            base_height=self.cell_height
-                        )
+                        __items_draft[i] = self.create_dict_calendar_item(__tasks_draft[i])
                         __calendar.add_widget(__items_draft[i])
                 break
         if __value is not None:
@@ -250,10 +229,7 @@ class Dashboard(MDScreen):
                     start=__collateral_start,
                     other=__value,
                     tasks_draft=__tasks_draft,
-                    items_draft=__items_draft,
-                    calendar=__calendar,
-                    cell_width=__cell_width,
-                    cell_height=self.cell_height
+                    items_draft=__items_draft
                 )
             elif isinstance(__value, (dict, tuple)):
                 pass
@@ -280,8 +256,8 @@ class Dashboard(MDScreen):
             raise IndexError("Row removed doesn't exists in the calendar.")
 
     def enter(self):
-        if not self._calendar_header.children:
-            self._update_header()
+        if self._tasks is None:
+            self._tasks: DataFrame = TASKS[self._datetime.date()]
             self._start_dashboard_calendar()
         self._scroll_to_now()
         self._btn_task.icon = 'plus-outline'
@@ -290,8 +266,9 @@ class Dashboard(MDScreen):
         self._task_dialog.item = None
         self._task_dialog.open()
 
-    def update_task(self, *args, item: Union[CalendarItem | MinimizedCalendarItem]):
-        if isinstance(item, MinimizedCalendarItem):
+    def update_task(self, instance: Union[CalendarItem, MinimizedCalendarItem]):
+        item = instance
+        if isinstance(instance, MinimizedCalendarItem):
             item = item.item
         self._task_dialog.item = item
         self._task_dialog.open()
@@ -300,31 +277,34 @@ class Dashboard(MDScreen):
         self._lbl_year.text = str(self._datetime.year)
         self._lbl_month.text = format_datetime(self._datetime, "MMMM", locale=_.language)
         __header: MDRelativeLayout = self._calendar_header
-        __cell_width = __header.width // 6
+        __cell_width = self.cell_width
         __datetime = datetime.today() - timedelta(days=1)
         for i in range(6):
-            __header.add_widget(
-                MDBoxLayout(
-                    MDLabel(
-                        text=format_datetime(__datetime, "EEEE", locale=_.language),
-                        theme_text_color="Hint",
-                        halign="center"
-                    ),
-                    MDLabel(text=str(__datetime.day), halign="center"),
-                    orientation="vertical",
-                    size_hint=(None, 1),
-                    width=__cell_width,
-                    pos_hint={"center_y": .5},
-                    x=i * __cell_width
-                )
+            __box_layout = MDBoxLayout(
+                MDLabel(
+                    text=format_datetime(__datetime, "EEEE", locale=_.language),
+                    theme_text_color="Hint",
+                    halign="center"
+                ),
+                MDLabel(text=str(__datetime.day), halign="center"),
+                orientation="vertical",
+                size_hint=(None, 1),
+                width=__cell_width,
+                pos_hint={"center_y": .5},
+                x=i * __cell_width
             )
+
+            def set_x(box_layout, idx, instance, value):
+                box_layout.x = idx * value
+
+            self.bind(cell_width=__box_layout.setter("width"))
+            self.bind(cell_width=partial(set_x, __box_layout, i))
+            __header.add_widget(__box_layout)
             __datetime += timedelta(days=1)
 
     def _start_dashboard_calendar(self):
         __calendar: MDRelativeLayout = self._calendar
-        __cell_width = __calendar.width // 6
-        if not __calendar.children:
-            self._create_basics(__calendar, __cell_width)
+        __cell_width = self.cell_width
         __tasks = self._tasks
         __today_timestamp = self._today_datestamp
         __last_timestamp = __today_timestamp + 5
@@ -367,27 +347,55 @@ class Dashboard(MDScreen):
             for draft in __groups:
                 for key, item in draft.items():
                     if isinstance(item, list):
-                        __item = MinimizedCalendarItem(*item,
-                                                       width=__cell_width,
-                                                       base_height=self.cell_height)
+                        __item = self.create_list_minimized_calendar_item(item)
                     elif isinstance(item, tuple):
-                        __item = MinimizedCalendarItem(item[0],
-                                                       width=__cell_width,
-                                                       base_height=self.cell_height)
+                        __item = self.create_tuple_minimized_calendar_item(item)
                     elif isinstance(item, dict):
-                        __item = CalendarItem(item=item,
-                                              width=__cell_width,
-                                              base_height=self.cell_height)
+                        __item = self.create_dict_calendar_item(item)
                     else:
                         raise TypeError(f"Internal error, item is from a unknown type: {type(item)}.")
-                    __item.bind(on_item_release=partial(self.update_task, item=__item))
                     self._grouped_items[__index][key] = __item
                     __calendar.add_widget(__item)
                 __index += 1
 
-    def _create_basics(self, calendar: MDRelativeLayout, cell_width: int) -> None:
+    def create_tuple_minimized_calendar_item(self, item: tuple) -> MinimizedCalendarItem:
+        if not isinstance(item, tuple):
+            raise TypeError("Item isn't a tuple instance.")
+        __item = MinimizedCalendarItem(item[0],
+                                       width=self.cell_width,
+                                       base_height=self.cell_height)
+        self.bind_item(__item)
+        return __item
+
+    def create_list_minimized_calendar_item(self, item: list) -> MinimizedCalendarItem:
+        if not isinstance(item, list):
+            raise TypeError("Item isn't a list instance.")
+        __item = MinimizedCalendarItem(*item,
+                                       width=self.cell_width,
+                                       base_height=self.cell_height)
+        self.bind_item(__item)
+        return __item
+
+    def create_dict_calendar_item(self, item: dict) -> CalendarItem:
+        if not isinstance(item, dict):
+            raise TypeError("Item isn't a dict instance.")
+        __item = CalendarItem(item=item,
+                              width=self.cell_width,
+                              base_height=self.cell_height)
+        self.bind_item(__item)
+        return __item
+
+    def bind_item(self, item: Union[MinimizedCalendarItem, CalendarItem]):
+        item.bind(on_item_release=self.update_task)
+        self.bind(cell_width=item.setter('width'))
+
+    def _create_basics(self) -> None:
+
+        def set_x(box_layout, idx, instance, value):
+            box_layout.x = idx * value
+
         for i in range(24):
-            calendar.add_widget(MDBoxLayout(
+            __box_layout = MDBoxLayout(
                 MDLabel(
                     text=format_time(time(hour=i), format='short', locale=_.language),
                     theme_text_color="Hint",
@@ -397,32 +405,81 @@ class Dashboard(MDScreen):
                 ),
                 size_hint=(None, None),
                 height=self.cell_height,
-                width=cell_width,
-                pos=(0, calendar.height - i * self.cell_height - self.cell_height),
+                width=self.cell_width,
+                pos=(0, (23 - i) * self.cell_height),
                 md_bg_color=self.theme_cls.surfaceContainerLowColor
-            ))
+            )
+            self.bind(cell_width=__box_layout.setter("width"))
+            self._calendar.add_widget(__box_layout)
         for i in range(1, 6):
-            calendar.add_widget(MDDivider(
+            __divider = MDDivider(
                 color=self.theme_cls.surfaceContainerLowColor,
                 orientation="vertical",
                 size_hint_y=1,
-                x=cell_width * i
-            ))
+                x=self.cell_width * i
+            )
+            self.bind(cell_width=partial(set_x, __divider, i))
+            self._calendar.add_widget(__divider)
+
+    # scroll_height = cell_height  # * 1.142857142857143  # 24 / 21
 
     def _scroll_to_now(self):
         __hour = datetime.now().hour
         __scroll: MDScrollView = self._scroll
-        __x, __y = __scroll.convert_distance_to_scroll(0, (24 - __hour - 3) * self.cell_height)
+        __viewport = getattr(self._scroll, '_viewport', None)
+        if __viewport is None or __scroll.height <= 0:
+            return
+        __scroll_max_cells = self._scroll.height / self.cell_height
+        if __scroll_max_cells * self.cell_height < self._scroll.height:
+            __scroll_max_cells += 1
+        __scroll_cell_number = 24 - __scroll_max_cells
+        __scroll_height = __viewport.height - __scroll.height
+        __cell_distance = __scroll_height / __scroll_cell_number
+        if __hour >= __scroll_cell_number:
+            __y = 0
+        elif __hour == 0:
+            __y = 1
+        else:
+            __dy = (__scroll_cell_number - __hour) * __cell_distance
+            __x, __y = __scroll.convert_distance_to_scroll(0, __dy)
         __scroll.scroll_y = __y
+        self.debug = 1
 
-    @staticmethod
-    def _update_collaterals(start: int,
+    def _update_scroll_height(self, instance: MDBoxLayout, value: int):
+        if self._scroll is None or self._calendar_header is None:
+            return
+        if isinstance(instance.padding, list):
+            if len(instance.padding) == 4:
+                __padding = instance.padding[1] + instance.padding[3]
+            else:
+                __padding = instance.padding[1]
+        else:
+            __padding = 2 * instance.padding
+        self._scroll.height = instance.height - self._calendar_header.height - __padding
+
+    def _load(self):
+        if self._calendar is not None and self._calendar_header is not None and self._btn_task is not None \
+                and self._lbl_year is not None and self._lbl_month is not None and self._scroll is not None:
+            if 'enter' in self._loading.keys():
+                self._loading.pop('enter')
+                if self._calendar.width == 100:
+                    def enter(instance, value):
+                        if value > 100:
+                            self.enter()
+                            instance.unbind(width=enter)
+                    self._calendar.bind(width=enter)
+                else:
+                    self.enter()
+
+    def _update_width(self, calendar, value):
+        self.cell_width = value // 6
+
+    def _update_collaterals(self,
+                            start: int,
                             other: Union[list, dict],
                             tasks_draft: dict[int, Union[list[dict], dict, tuple]],
-                            items_draft: dict[int, Union[list[dict], dict, tuple]],
-                            calendar: MDRelativeLayout,
-                            cell_width: float,
-                            cell_height: float) -> Union[list, dict]:
+                            items_draft: dict[int, Union[CalendarItem, MinimizedCalendarItem]]) -> Union[list, dict]:
+        calendar: MDRelativeLayout = self._calendar
         for i in range(16):
             __collateral_start = start + i
             __collateral = tasks_draft.get(__collateral_start, None)
@@ -451,23 +508,11 @@ class Dashboard(MDScreen):
 
         tasks_draft[start] = other
         if isinstance(other, dict):
-            items_draft[start] = CalendarItem(
-                other,
-                width=cell_width,
-                base_height=cell_height
-            )
+            items_draft[start] = self.create_dict_calendar_item(other)
         elif isinstance(other, tuple):
-            items_draft[start] = MinimizedCalendarItem(
-                other[0],
-                width=cell_width,
-                base_height=cell_height
-            )
+            items_draft[start] = self.create_tuple_minimized_calendar_item(other)
         elif isinstance(other, list):
-            items_draft[start] = MinimizedCalendarItem(
-                *other,
-                width=cell_width,
-                base_height=cell_height
-            )
+            items_draft[start] = self.create_list_minimized_calendar_item(other)
         else:
             raise TypeError("Unknown type in the draft!")
         calendar.add_widget(items_draft[start])

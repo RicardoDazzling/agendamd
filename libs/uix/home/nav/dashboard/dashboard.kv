@@ -1,7 +1,7 @@
 
 
-<Dashboard>:
-    MDCard:
+<DashboardScreen>:
+    MDStaticCard:
         pos_hint: {"center_x": .5, "center_y": .5}
         padding: "20dp"
         size_hint: .9, .9
@@ -18,10 +18,11 @@
             role: "large"
             adaptive_height: True
         MDBoxLayout:
+            id: table
             size_hint: 1, 1
             orientation: "vertical"
-            padding: "20dp"
-            radius: "10dp"
+            padding: dp(20)
+            radius: dp(10)
             MDRelativeLayout:
                 id: calendar_header
                 size_hint: (1, None)
@@ -30,7 +31,8 @@
             MDScrollView:
                 id: scroll
                 do_scroll_x: False
-                size_hint: (1, 1)
+                size_hint: (1, None)
+                height: root.cell_height * 3
                 MDRelativeLayout:
                     id: calendar
                     size_hint_y: None

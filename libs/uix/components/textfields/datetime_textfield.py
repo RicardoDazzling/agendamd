@@ -3,12 +3,12 @@ from typing import Optional, Union
 from babel.dates import format_date, format_time, format_datetime
 from kivy.properties import ObjectProperty, NumericProperty, OptionProperty, StringProperty
 from kivymd.uix.pickers import MDModalDatePicker, MDTimePickerDialVertical
+from kivymd.uix.pickers.datepicker.datepicker import MDDatePickerDaySelectableItem
 from kivymd.uix.textfield import MDTextField
 from datetime import date, time, datetime
 
 
 class DateTimeTextField(MDTextField):
-
     datetime_mode = OptionProperty("datetime", options=["date", "time", "datetime"])
     date_dialog = ObjectProperty(None)
     time_dialog = ObjectProperty(None)
@@ -28,8 +28,6 @@ class DateTimeTextField(MDTextField):
         self.time_dialog = MDTimePickerDialVertical()
         __now = datetime.now()
         self.time_dialog.set_time(__now.time())
-        if __now.hour > 12:
-            self.time_dialog.am_pm = 'pm'
 
         self.date_dialog.bind(on_ok=self.on_date_ok, on_cancel=self.on_cancel)
         self.time_dialog.bind(on_ok=self.on_time_ok, on_cancel=self.on_cancel)
@@ -67,6 +65,30 @@ class DateTimeTextField(MDTextField):
             self.text = format_date(value, locale=self.locale)
         elif self.datetime_mode == 'time' and isinstance(value, time):
             self.text = format_time(value, locale=self.locale)
+        if 'time' in self.datetime_mode:
+            if value is None:
+                self.time_dialog.set_time(datetime.now().time())
+            else:
+                self.time_dialog.set_time(value if isinstance(value, time) else value.time())
+        if 'date' in self.datetime_mode:
+            if value is None:
+                value = datetime.now().date()
+            if value.year == self.date_dialog.sel_year and \
+                    value.month == self.date_dialog.sel_month and \
+                    value.day == self.date_dialog.sel_day:
+                return
+            self.date_dialog.update_calendar(value.year, value.month)
+            __day = str(value.day)
+            __child = None
+            for child in self.date_dialog.calendar_layout.children:
+                if isinstance(child, MDDatePickerDaySelectableItem):
+                    if child.text == __day:
+                        child.is_selected = True
+                        __child = child
+                        break
+            if __child is None:
+                raise IndexError("Failed to find the date in the calendar.")
+            self.date_dialog.set_selected_widget(__child)
 
     def on_text_validate(self):
         super().on_text_validate()
@@ -75,7 +97,7 @@ class DateTimeTextField(MDTextField):
         elif self.time_dialog.is_open:
             self.on_time_ok(self.time_dialog)
 
-    def on_cancel(self, instance: Optional[MDModalDatePicker | MDTimePickerDialVertical] = None):
+    def on_cancel(self, instance: Optional[Union[MDModalDatePicker, MDTimePickerDialVertical]] = None):
         if instance is not None:
             instance.dismiss()
         else:

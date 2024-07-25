@@ -73,15 +73,15 @@ class AgendaMDApp(MDApp):
         "LoginTextField": "libs.uix.components.login",
         "LoginPasswordTextField": "libs.uix.components.login",
         "LoginFormButton": "libs.uix.components.login",
-        "CheckIcon": "libs.uix.components.home",
+        "MDStaticCard": "libs.uix.components.home",
         "BaseCalendarItem": "libs.uix.components.home",
         "CalendarItem": "libs.uix.components.home",
         "CalendarItemNav": "libs.uix.components.home",
         "MinimizedCalendarItem": "libs.uix.components.home",
         "LoginScreen": "libs.uix.login",
         "RegisterScreen": "libs.uix.login",
-        "Home": "libs.uix.home",
-        "Dashboard": "libs.uix.home.nav",
+        "HomeScreen": "libs.uix.home",
+        "DashboardScreen": "libs.uix.home.nav",
     }
 
     translator: Optional[Translator] = ObjectProperty(None)
@@ -142,7 +142,7 @@ class AgendaMDApp(MDApp):
                 __switch_to_home = True
         self.SCREENS['login'] = Factory.LoginScreen(name="login")
         self.SCREENS['register'] = Factory.RegisterScreen(name="register")
-        self.SCREENS['home'] = Factory.Home(name="home")
+        self.SCREENS['home'] = Factory.HomeScreen(name="home")
         self.manager.add_widget(self.SCREENS['login'])
         self.manager.add_widget(self.SCREENS['register'])
         self.manager.add_widget(self.SCREENS['home'])

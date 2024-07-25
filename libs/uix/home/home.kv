@@ -1,6 +1,6 @@
 
 
-<Home>:
+<HomeScreen>:
     MDBoxLayout:
         size: root.size
         pos: root.pos
@@ -10,20 +10,18 @@
             type: "unselected"
             MDNavigationRailItem:
                 id: dashboard_item
-                on_active: root.goto_dashboard(*args)
+                on_active: root._goto('dashboard', *args)
                 MDNavigationRailItemIcon:
                     icon: "view-dashboard"
             MDNavigationRailItem:
                 id: list_item
-                on_active: root.goto_task(*args)
+                on_active: root._goto('list', *args)
                 MDNavigationRailItemIcon:
                     icon: "list-box-outline"
             MDNavigationRailItem:
                 id: inbox_item
-                on_active: root.goto_inbox(*args)
+                on_active: root._goto('inbox', *args)
                 MDNavigationRailItemIcon:
                     icon: "inbox-outline"
         MainScreenManager:
             id: screen_manager
-            Dashboard:
-                name: "dashboard"

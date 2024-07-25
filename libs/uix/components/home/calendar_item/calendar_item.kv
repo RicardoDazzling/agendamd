@@ -1,14 +1,15 @@
 
 
 <CalendarItem>:
-    style: "elevated"
-    padding: "20dp"
-    size_hint: None, None
     MDRelativeLayout:
         id: relative_layout
         size_hint: (1, 1)
-        CheckIcon:
+        MDIcon:
             id: check_icon
+            theme_font_size: "Custom"
+            font_size: "50dp"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
         MDBoxLayout:
             size_hint: (1, 1)
             spacing: "5dp"
@@ -24,13 +25,6 @@
                         root.title if root.title is not None else ''
             MDBoxLayout:
                 id: box_description
-                MDLabel:
-                    id: lbl_description
-                    font_style: "Body"
-                    role: "small"
-                    halign: "justify"
-                    text:
-                        root.description if root.description is not None else ''
             MDBoxLayout:
                 MDLabel:
                     id: lbl_duration

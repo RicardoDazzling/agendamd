@@ -138,7 +138,7 @@ class ComboTextField(MDTextField):
     def dropdown_open(self):
         if self.dropdown.parent:
             self.dropdown.parent.remove_widget(self.dropdown)
-        if self.x > 0 or self.y > 0:
+        if self.x > 0 and self.y > 0:
             self.dropdown.open()
 
     @property

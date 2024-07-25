@@ -1,5 +1,7 @@
 __all__ = ['MDTextFieldTrailingIconButton']
 
+from typing import Optional
+
 from kivy.core.window import Window
 from kivy.core.window.window_sdl2 import WindowSDL
 from kivy.event import EventDispatcher
@@ -11,7 +13,7 @@ from kivymd.uix.textfield import MDTextFieldTrailingIcon, MDTextField
 class MDTextFieldTrailingIconButton(MDTextFieldTrailingIcon, EventDispatcher):
     text_field = ObjectProperty(None)
 
-    def __init__(self, text_field: MDTextField | None = None, **kwargs):
+    def __init__(self, text_field: Optional[MDTextField] = None, **kwargs):
         if text_field is not None:
             self.text_field = text_field
         super(MDTextFieldTrailingIconButton, self).__init__(**kwargs)

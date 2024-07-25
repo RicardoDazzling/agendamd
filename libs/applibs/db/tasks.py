@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from datetime import datetime, date
-from typing import Optional, Callable, Literal
+from typing import Optional, Callable, Literal, Union
 
 from .config import CONFIG
 from .users import USERS
@@ -44,12 +44,12 @@ class Tasks:
             raise TypeError("Other isn't a instance of dict.")
         return self.remove(other)
 
-    def __getitem__(self, item: str | date):
+    def __getitem__(self, item: Union[str, date]):
         if isinstance(item, date):
             return self.get(year=item.year, month=item.month)
         return super(Tasks, self).__getattribute__(item)
 
-    def __setitem__(self, key: str | dict, value):
+    def __setitem__(self, key: Union[str, dict], value):
         if isinstance(key, dict) and isinstance(value, dict):
             self.update(key, value)
         else:
@@ -117,10 +117,10 @@ class Tasks:
             return
         if os.path.exists(__month_folder):
             __df = self.read(__month_folder)
-            __find = __df.isin(old).all()
+            __find = __df.isin({k: [v] for k, v in old.items()}).all(axis=1)
             if not __find.any():
                 raise TaskNotExistsException()
-            __df.loc[__find] = new
+            __df.loc[__df.loc[__find].index[0]] = new
         else:
             raise TaskNotExistsException()
         self.write(__month_folder, __df)

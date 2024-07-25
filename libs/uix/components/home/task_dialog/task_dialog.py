@@ -3,7 +3,6 @@ from typing import Optional, Literal
 
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty
-from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText, \

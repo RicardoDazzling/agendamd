@@ -4,14 +4,14 @@ from datetime import time, date
 from kivy.metrics import dp
 from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 from kivymd.uix.behaviors import HoverBehavior
-from kivymd.uix.card import MDCard
 from babel.dates import format_time
 
 from globals import CONFIG
 from libs.applibs.utils import get_datestamp_from_date
+from libs.uix.components.home.static_card import MDStaticCard
 
 
-class BaseCalendarItem(MDCard, HoverBehavior):
+class BaseCalendarItem(MDStaticCard, HoverBehavior):
     title = StringProperty(None)
     day = NumericProperty(None)
     start = NumericProperty(None)
@@ -23,30 +23,38 @@ class BaseCalendarItem(MDCard, HoverBehavior):
     static_pos = BooleanProperty(False)
 
     def __init__(self,
-                 item: Optional[dict] = None,
                  base_height: Optional[float] = None,
                  **kwargs):
+        kwargs['style'] = "elevated"
+        kwargs['padding'] = dp(10)
+        kwargs['size_hint'] = (None, None)
         super(BaseCalendarItem, self).__init__(**kwargs)
         self.register_event_type('on_item_release')
         self.register_event_type('on_item_press')
-        self.bind(start=self.on_duration, end=self.on_duration, closed=self.on_closed)
+        self.bind(width=self.on_duration, start=self.on_duration, end=self.on_duration)
 
-        if item is not None:
-            self.set_properties_by_dict(item)
         if base_height is not None:
             self.base_height = base_height
 
     def on_duration(self, *args):
-        if self.start is None or self.end is None:
+        if self.width == 0:
             return
+        if isinstance(self.day, list):
+            if not self.start or not self.end:
+                return
+            __day = self.day[0]
+            __end = self.start[0] + 15
+        else:
+            if self.start is None or self.end is None:
+                return
+            __day = self.day
+            __end = self.end
         if not self.static_pos:
-            __day_date = self.day
+            __day_date = __day
             __today = get_datestamp_from_date(date.today()) - 1
-            self.pos = (
-                (__day_date - __today) * self.width,
-                ((23 - self.start / 60) * self.base_height)
-            )
-            return
+            __x = (__day_date - __today) * self.width
+            __y = ((24 - __end / 60) * self.base_height)
+            self.pos = (__x, __y)
 
     def format_duration(self) -> str:
         return f"{

@@ -27,7 +27,13 @@ class Config:
 
     @property
     def language(self) -> Literal['pt_BR', 'en_US']:
-        return self._get_current("LANGUAGE")
+        __language = self._get_current("LANGUAGE")
+        if __language == 'pt_BR':
+            return 'pt_BR'
+        elif __language == 'en_US':
+            return 'en_US'
+        else:
+            raise ValueError(f'Unknown language: {__language}')
 
     @language.setter
     def language(self, language: Literal['pt_BR', 'en_US']) -> None:
@@ -76,11 +82,11 @@ class Config:
     def _create_file(self):
         self.config["main"] = {
             "DEFAULT_USER": "",
-            "LANGUAGE": "pt_BR",
+            "LANGUAGE": "en_US",
             "TAG_INT_SIZE": "B",
-            "TASK_MAX_TITLE_SIZE": "80",
-            "TASK_MAX_DESCRIPTION_SIZE": "500",
-            "TASK_MAX_TAG_SIZE": "80",
+            "TASK_MAX_TITLE_SIZE": "20",
+            "TASK_MAX_DESCRIPTION_SIZE": "80",
+            "TASK_MAX_TAG_SIZE": "20",
             "TASK_OLDEST_DAY": "0",
         }
         self.save_config()

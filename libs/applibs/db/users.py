@@ -35,6 +35,10 @@ class Users:
         __logged = self._user is not None
         if not __logged and raise_exception:
             raise UserNotLoggedException()
+        if __logged:
+            __logged = self._user.password_string is not None
+            if not __logged and raise_exception:
+                raise UserNotLoggedException()
         return __logged
 
     def bind(self, on_login: Optional[Callable] = None):
@@ -46,7 +50,7 @@ class Users:
             raise UserNotExistException()
         if email is None or password is None:
             raise EmptyFieldException()
-        __user = self._read_file(email + ".npy", ignore=True)
+        __user = self._read_file(email, ignore=True)
         if email + ".npy" not in self._list_path or not isinstance(__user, User):
             raise EMailException()
         if len(password) > 32:
@@ -77,7 +81,7 @@ class Users:
             raise TooLongPasswordException()
 
         self._user = User(name=name, email=email, password=password, keep=keep_logged, on_keep=self.save)
-        self._user_file = self._user.array
+        self.save()
         CONFIG.default_user = email
         for method in self._bindings["on_login"]:
             method()
@@ -90,10 +94,10 @@ class Users:
 
     def save(self):
         if isinstance(self._user, User):
-            self._user_file = self._user.array
+            self._user_file = np.append(self._user.array, self._user.keep_logged).astype('U128')
 
     def _crypt_database(self, method: Callable, extension: Literal[".npy", ".npy.amc"]):
-        if not isinstance(self._user, User) or not self.logged():
+        if not isinstance(self._user, User) or not self.logged() or self._user.password_string is None:
             raise NotLoggedException()
 
         for root, dirs, files in os.walk(self.user_db_dir):
@@ -101,7 +105,7 @@ class Users:
                 if file.endswith(extension):
                     method(
                         os.path.join(root, file),
-                        utils.md5_hash(self._user.password),
+                        utils.md5_hash(self._user.password_string),
                         utils.md5_hash(settings.NAME)
                     )
 
@@ -117,7 +121,7 @@ class Users:
             if ignore:
                 return False
             raise FileNotFoundError("User file not found.")
-        return User(array=__np, on_keep=self.save)
+        return User(array=__np[:-1], keep=__np[-1] == 'True', on_keep=self.save)
 
     @property
     def user_db_dir(self) -> str:
@@ -132,7 +136,7 @@ class Users:
         return self._read_file()
 
     @_user_file.setter
-    def _user_file(self, val: np.ndarray | User) -> None:
+    def _user_file(self, val: Union[np.ndarray, User]) -> None:
         if isinstance(val, User):
             __file = val.email
         elif isinstance(val, np.ndarray):

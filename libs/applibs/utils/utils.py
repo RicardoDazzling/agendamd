@@ -23,6 +23,8 @@ def md5_hash(string: str) -> bytes:
 
 
 def encrypt(filepath: str, key: bytes, iv: bytes, remove_npy: bool = True) -> str:
+    if '.amc' in filepath:
+        raise ValueError("File already encrypted.")
     __enfile = filepath + ".amc"
     __aes = AES.new(key, AES.MODE_CFB, iv=iv)
 
@@ -40,6 +42,8 @@ def encrypt(filepath: str, key: bytes, iv: bytes, remove_npy: bool = True) -> st
 
 
 def decrypt(en_filepath: str, key: bytes, iv: bytes, remove_amc: bool = False) -> str:
+    if '.amc' not in en_filepath:
+        raise ValueError("Wrong encrypted file extension")
     __file = en_filepath.replace('.amc', '')
     __aes = AES.new(key, AES.MODE_CFB, iv=iv)
 
@@ -82,11 +86,11 @@ def array_size(integer: int) -> Literal["B", "H", "I", "L"]:
 
 
 def get_datestamp_from_date(date_object: date) -> int:
-    return int(mktime(date_object.timetuple())) // 86400
+    return (date_object - date.fromtimestamp(0)).days
 
 
 def get_date_from_datestamp(datestamp: int) -> date:
-    return date.fromtimestamp(datestamp * 86400)
+    return date.fromtimestamp(0) + timedelta(days=datestamp)
 
 
 def get_timestamp(datetime_var: Optional[datetime] = None) -> int:

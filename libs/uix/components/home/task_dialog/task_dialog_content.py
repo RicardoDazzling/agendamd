@@ -164,7 +164,7 @@ class TaskDialogContent(MDBoxLayout):
             self._start.time = None
 
         if item.end is not None:
-            hour, minute = divmod(item.start, 60)
+            hour, minute = divmod(item.end, 60)
             self._end.time = time(hour=hour, minute=minute)
         else:
             self._end.text = ""

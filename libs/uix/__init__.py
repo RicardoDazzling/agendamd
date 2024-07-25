@@ -1,2 +1,2 @@
 from .login import *
-from .home import Home
+from .home import HomeScreen

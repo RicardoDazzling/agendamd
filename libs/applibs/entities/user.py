@@ -2,7 +2,7 @@ import os.path
 
 import numpy as np
 
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Union
 from hashlib import sha256
 from settings import settings
 
@@ -18,14 +18,11 @@ class User:
                  keep: Optional[bool] = None,
                  array: Optional[np.ndarray] = None,
                  on_keep: Callable = lambda x: None):
+        self._keep = keep if keep is not None else False
         if array is not None:
-            self._array = array.copy()
+            self.array = array.copy()
         else:
-            self._array = np.array([name, email, password])
-        self._keep = keep if keep is not None else \
-            len(password) != 64 if password is not None else \
-            len(str(array[2])) != 64 if array is not None else \
-            False
+            self.array = np.array([name, email, password], dtype='U64')
         if password is not None and array is None:
             self._password_string = password if len(password) < 64 else None
         elif password is None and array is not None:
@@ -52,7 +49,9 @@ class User:
 
     @array.setter
     def array(self, array: np.ndarray):
-        self._array = array.copy()
+        __array = array.copy()
+        __array[2] = __array[2] if self._keep or len(__array[2]) == 64 else self.hash(str(__array[2]))
+        self._array = __array
 
     @property
     def name(self) -> str:
@@ -60,7 +59,7 @@ class User:
 
     @name.setter
     def name(self, name: str):
-        self._array = np.array([name, self._array[1], self._array[2]])
+        self._array = np.array([name, self._array[1], self._array[2]], dtype='U128')
 
     @property
     def email(self) -> str:
@@ -68,7 +67,7 @@ class User:
 
     @email.setter
     def email(self, email: str):
-        self._array = np.array([self._array[0], email, self._array[2]])
+        self._array = np.array([self._array[0], email, self._array[2]], dtype='U128')
 
     @property
     def password_string(self) -> Optional[str]:
@@ -86,15 +85,15 @@ class User:
     def password(self, password: str):
         self._password_string = password
         __hash = self.hash(password) if not self._keep else password
-        self._array = np.array([self._array[0], self._array[1], __hash])
+        self._array = np.array([self._array[0], self._array[1], __hash], dtype='U128')
 
     @property
     def keep_logged(self) -> bool:
         return self._keep
 
     @keep_logged.setter
-    def keep_logged(self, value: List[bool | Optional[str]]):
-        if not isinstance(value, list | bool):
+    def keep_logged(self, value: List[Union[bool, Optional[str]]]):
+        if not isinstance(value, (list, bool)):
             raise ValueError(
                 "Value need to be a list with the keep logged (required) and password (optional) or a bool.")
         if isinstance(value, bool):
@@ -116,19 +115,21 @@ class User:
         if value[0]:
             if value[1] is None or not isinstance(value[1], str):
                 raise ValueError("Not hashed password is a required argument when keep logged is set to True.")
-            if len(value[1]) == 64:
+            if value[1] == self.password:
                 raise ValueError("A hashed password was given, but a not hashed is required.")
-            if len(self.password) == 64:
-                self._array = np.array([self._array[0], self._array[1], value[1]])
+            self._array = np.array([self._array[0], self._array[1], value[1]])
+            self._password_string = value[1]
         else:
-            if len(self.password) != 64:
-                self._array = np.array([self._array[0], self._array[1], self.hash(self.password)])
-        self._on_keep(self)
+            self._array = np.array([self._array[0], self._array[1], self.hash(self.password)])
         self._keep = value[0]
+        self._on_keep()
 
     def compare_password(self, password: str) -> bool:
         __hash = self.hash(password) if not self._keep else password
-        return self.password == __hash
+        __comparison = self.password == __hash
+        if __comparison:
+            self._password_string = password
+        return __comparison
 
     @staticmethod
     def hash(string: str) -> str:
