@@ -13,10 +13,11 @@ from kivymd.uix.snackbar import (MDSnackbar, MDSnackbarSupportingText, MDSnackba
                                  MDSnackbarText)
 
 from globals import TAGS, TASKS, translator as _
-from libs.uix.components.home import CalendarItem
+from libs.applibs.utils import ignore_args, ignore_instance
+from libs.uix.components.dashboard import CalendarItem
 from libs.uix.components.textfields import ComboTextField
 
-from .task_dialog_content import TaskDialogContent, TagNotExists
+from .content import TaskDialogContent, TagNotExists
 
 
 class TaskDialog(MDDialog):
@@ -32,30 +33,29 @@ class TaskDialog(MDDialog):
             adaptive_height=True
         )
         self._btn_remove = MDButton(
-            MDButtonText(text=_("Remove")),
+            _.bind_translation(MDButtonText(), "text", "Remove"),
             style="text",
             theme_text_color='Error',
             on_release=self.remove,
         )
         self._btn_cancel = MDButton(
-            MDButtonText(text=_("Cancel")),
+            _.bind_translation(MDButtonText(), "text", "Cancel"),
             style="text",
             on_release=lambda i: self.cancel(),
         )
         self._btn_accept = MDButton(
-            MDButtonText(text=_("Accept")),
+            _.bind_translation(MDButtonText(), "text", "Accept"),
             style="text",
             on_release=lambda i: self.accept(),
         )
         super(TaskDialog, self).__init__(
             MDDialogIcon(icon='check'),
-            MDDialogHeadlineText(text=_('Create or Update a Task')),
-            MDDialogSupportingText(
-                text=_('In this window you can create or update a task. '
-                       'Next, you can see the task fields, please complete and edit then,'
-                       ' and click in Accept. If your editing a task that exists and'
-                       ' click in Remove, the task will be removed.')
-            ),
+            _.bind_translation(MDDialogHeadlineText(), "text", 'Create or Update a Task'),
+            _.bind_translation(MDDialogSupportingText(), "text",
+                               'In this window you can create or update a task. '
+                               'Next, you can see the task fields, please complete and edit then,'
+                               ' and click in Accept. If your editing a task that exists and'
+                               ' click in Remove, the task will be removed.'),
             MDDialogContentContainer(
                 MDDivider(),
                 self._dialog_content,
@@ -93,9 +93,7 @@ class TaskDialog(MDDialog):
             padding=[0, 0, 0, dp(56)],
         )
         self._error_snackbar = MDSnackbar(
-            MDSnackbarText(
-                text=_("Errors occurred in the task creation:"),
-            ),
+            _.bind_translation(MDSnackbarText(), "text", "Errors occurred in the task creation:"),
             self._error_snackbar_text,
             MDSnackbarButtonContainer(
                 Widget(),
@@ -111,14 +109,10 @@ class TaskDialog(MDDialog):
             auto_dismiss=False
         )
         self._new_tag_snackbar = MDSnackbar(
-            MDSnackbarSupportingText(
-                text=_("This tag doesn't exists, want to create this?"),
-            ),
+            _.bind_translation(MDSnackbarSupportingText(), "text", "This tag doesn't exists, want to create this?"),
             MDSnackbarButtonContainer(
                 MDSnackbarActionButton(
-                    MDSnackbarActionButtonText(
-                        text=_("Create")
-                    ),
+                    _.bind_translation(MDSnackbarActionButtonText(), "text", "Create"),
                     on_release=self._create_tag
                 ),
                 MDSnackbarCloseButton(
@@ -133,20 +127,17 @@ class TaskDialog(MDDialog):
             size_hint_x=0.5,
             auto_dismiss=False
         )
+        __action_remove_button = _.bind_translation(MDSnackbarActionButtonText(
+            theme_text_color="Custom",
+            text_color=self.theme_cls.errorColor
+        ), "text", "Continue")
+        self.theme_cls.bind(errorColor=__action_remove_button.setter('text_color'))
         self._rusure_snackbar = MDSnackbar(
-            MDSnackbarText(
-                text=_("Are you sure?"),
-            ),
-            MDSnackbarSupportingText(
-                text=_("After remove, this task can't be recovered."),
-            ),
+            _.bind_translation(MDSnackbarText(), "text", "Are you sure?"),
+            _.bind_translation(MDSnackbarSupportingText(), "text", "After remove, this task can't be recovered."),
             MDSnackbarButtonContainer(
                 MDSnackbarActionButton(
-                    MDSnackbarActionButtonText(
-                        text=_("Continue"),
-                        theme_text_color="Custom",
-                        text_color=self.theme_cls.errorColor
-                    ),
+                    __action_remove_button,
                     on_release=self.remove
                 ),
                 MDSnackbarCloseButton(
@@ -162,7 +153,8 @@ class TaskDialog(MDDialog):
             auto_dismiss=False
         )
 
-    def _create_tag(self, *args):
+    @ignore_args
+    def _create_tag(self):
         self._new_tag_snackbar.dismiss()
         __tag_field: ComboTextField = self._dialog_content.get_field('tag')
         TAGS.add(__tag_field.text)
@@ -174,7 +166,8 @@ class TaskDialog(MDDialog):
         else:
             __tag_field.data = [__tag_field.text]
 
-    def _snackbar_dismiss(self, *args, snackbar: Literal['error', 'tag', 'remove'] = 'tag'):
+    @ignore_args
+    def _snackbar_dismiss(self, snackbar: Literal['error', 'tag', 'remove'] = 'tag'):
         if snackbar == 'error':
             self._error_snackbar.dismiss()
         elif snackbar == 'tag':
@@ -188,7 +181,7 @@ class TaskDialog(MDDialog):
         self._dialog_content.clean()
         self.item = None
 
-    def remove(self, instance = None):
+    def remove(self, instance=None):
         if self.item is None:
             self.cancel()
         if not isinstance(instance, MDSnackbarActionButton):
@@ -229,10 +222,12 @@ class TaskDialog(MDDialog):
         super(TaskDialog, self).on_dismiss(*args)
         self.clean()
 
-    def on_new_tag(self, *args):
+    @ignore_args
+    def on_new_tag(self):
         self._new_tag_snackbar.open()
 
-    def on_item(self, instance, value):
+    @ignore_instance
+    def on_item(self, value):
         if isinstance(value, CalendarItem):
             self._dialog_content.complete_by_item(value)
         elif value is None:

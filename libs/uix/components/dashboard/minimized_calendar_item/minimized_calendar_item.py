@@ -2,8 +2,9 @@ from typing import Optional
 
 from kivy.properties import ListProperty, ObjectProperty
 
-from libs.uix.components.home.base_calendar_item import BaseCalendarItem
-from libs.uix.components.home.calendar_item import CalendarItem, CalendarItemNav
+from libs.applibs.utils import ignore_args, ignore_instance
+from libs.uix.components.dashboard.base_calendar_item import BaseCalendarItem
+from libs.uix.components.dashboard.calendar_item import CalendarItem, CalendarItemNav
 
 
 class MinimizedCalendarItem(BaseCalendarItem):
@@ -34,7 +35,10 @@ class MinimizedCalendarItem(BaseCalendarItem):
             base_height=self.base_height,
             width=self.width,
             theme_text_color="Hint",
-            pos=self.pos,
+            pos=(
+                    self.x,
+                    ((24 - self.end[0] / 60) * self.base_height)
+                ),
             static_pos=True
         )
 
@@ -128,19 +132,22 @@ class MinimizedCalendarItem(BaseCalendarItem):
             self.item.hovering = True
             self.item.hover_visible = True
 
-    def on_item_leave(self, *args):
+    @ignore_args
+    def on_item_leave(self):
         if not self.item.hover_visible and self.item.parent is not None:
             self.parent.remove_widget(self.item)
             self.hovering = False
             self.hover_visible = False
 
-    def on_previous_release(self, *args):
+    @ignore_args
+    def on_previous_release(self):
         new_index = self.item_index - 1
         if new_index == -1:
             new_index = len(self.title) - 1
         self.change_item_index(new_index)
 
-    def on_next_release(self, *args):
+    @ignore_args
+    def on_next_release(self):
         new_index = self.item_index + 1
         if new_index == len(self.title):
             new_index = 0
@@ -156,10 +163,12 @@ class MinimizedCalendarItem(BaseCalendarItem):
         self.item.tag = self.tag[index]
         self.item.closed = self.closed[index]
 
-    def _on_item_release(self, instance: CalendarItem):
+    @ignore_instance
+    def _on_item_release(self):
         self.dispatch("on_item_release")
 
-    def _on_item_press(self, instance: CalendarItem):
+    @ignore_instance
+    def _on_item_press(self):
         self.dispatch("on_item_press")
 
     @property

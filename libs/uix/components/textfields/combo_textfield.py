@@ -27,6 +27,8 @@ class ComboTextField(MDTextField):
             self.dropdown_open()
 
     def on_dismiss(self, *args):
+        if args:
+            pass
         if not self.accept_unknown:
             if self.text not in self.data:
                 self.text = ""
@@ -138,7 +140,7 @@ class ComboTextField(MDTextField):
     def dropdown_open(self):
         if self.dropdown.parent:
             self.dropdown.parent.remove_widget(self.dropdown)
-        if self.x > 0 and self.y > 0:
+        if self.x > 0 and self.y > 0 and self.focus:
             self.dropdown.open()
 
     @property

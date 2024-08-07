@@ -1,1 +1,1 @@
-from .task_dialog import TaskDialog
+from .dialog import TaskDialog

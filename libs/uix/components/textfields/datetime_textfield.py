@@ -1,20 +1,32 @@
-from typing import Optional, Union
+import sys
+
+from typing import Optional, Union, Any
 
 from babel.dates import format_date, format_time, format_datetime
 from kivy.properties import ObjectProperty, NumericProperty, OptionProperty, StringProperty
+from kivy.uix.behaviors import ButtonBehavior
+from kivymd.uix.label import MDLabel
 from kivymd.uix.pickers import MDModalDatePicker, MDTimePickerDialVertical
-from kivymd.uix.pickers.datepicker.datepicker import MDDatePickerDaySelectableItem
 from kivymd.uix.textfield import MDTextField
 from datetime import date, time, datetime
+
+
+if sys.version_info >= (3, 11):
+    DatetimeBaseType = Optional[datetime]
+    DateBaseType = Optional[date]
+    TimeBaseType = Optional[time]
+    DatetimeUnionType = Union[datetime, date, time]
+else:
+    DatetimeBaseType = DateBaseType = TimeBaseType = DatetimeUnionType = Any
 
 
 class DateTimeTextField(MDTextField):
     datetime_mode = OptionProperty("datetime", options=["date", "time", "datetime"])
     date_dialog = ObjectProperty(None)
     time_dialog = ObjectProperty(None)
-    datetime: Optional[datetime] = ObjectProperty(None, allownone=True)
-    date: Optional[date] = ObjectProperty(None, allownone=True)
-    time: Optional[time] = ObjectProperty(None, allownone=True)
+    datetime: DatetimeBaseType = ObjectProperty(None, allownone=True)
+    date: DateBaseType = ObjectProperty(None, allownone=True)
+    time: TimeBaseType = ObjectProperty(None, allownone=True)
     locale = StringProperty("en_US")
     start = NumericProperty(0)
 
@@ -58,7 +70,8 @@ class DateTimeTextField(MDTextField):
         self.dispatch('on_text_validate')
         self.focus = False
 
-    def on_datetime(self, instance, value: Union[datetime, date, time]):
+    @staticmethod
+    def on_datetime(self, value: DatetimeUnionType):
         if self.datetime_mode == 'datetime' and isinstance(value, datetime):
             self.text = format_datetime(value, locale=self.locale)
         elif self.datetime_mode == 'date' and isinstance(value, date):
@@ -81,7 +94,9 @@ class DateTimeTextField(MDTextField):
             __day = str(value.day)
             __child = None
             for child in self.date_dialog.calendar_layout.children:
-                if isinstance(child, MDDatePickerDaySelectableItem):
+                __is_MDDatePickerDaySelectableItem_instance = (isinstance(child, MDLabel)
+                                                               and isinstance(child, ButtonBehavior))
+                if __is_MDDatePickerDaySelectableItem_instance:
                     if child.text == __day:
                         child.is_selected = True
                         __child = child

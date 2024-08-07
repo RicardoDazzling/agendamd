@@ -6,5 +6,4 @@ numpy
 pandas
 pycryptodomex
 requests
-trio
 urllib3

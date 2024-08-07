@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AgendaMD 0.2\n"
 "Report-Msgid-Bugs-To: ricardodazzling@gmail.com\n"
-"POT-Creation-Date: 2024-07-17 12:40-0300\n"
+"POT-Creation-Date: 2024-08-06 00:05-0300\n"
 "PO-Revision-Date: 2024-06-30 12:37-0300\n"
 "Last-Translator: Ricardo Állan <ricardodazzling@gmail.com>\n"
 "Language: pt_BR\n"
@@ -19,23 +19,94 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.15.0\n"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:36
-msgid "Remove"
-msgstr "Remover"
+#: libs/applibs/db/tags.py:161 libs/uix/home/nav/config/config.py:19
+msgid "Default"
+msgstr "Padrão"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:42
+#: libs/uix/components/config/password_dialog/content.py:30
+msgid "Current password"
+msgstr "Senha atual"
+
+#: libs/uix/components/config/password_dialog/content.py:41
+msgid "New password"
+msgstr "Nova senha"
+
+#: libs/uix/components/config/password_dialog/content.py:52
+msgid "Repeat new password"
+msgstr "Confirme a senha"
+
+#: libs/uix/components/config/password_dialog/dialog.py:34
+#: libs/uix/components/home/task_dialog/dialog.py:42
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:47
+#: libs/uix/components/config/password_dialog/dialog.py:39
+#: libs/uix/components/home/task_dialog/dialog.py:47
 msgid "Accept"
 msgstr "Finalizar"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:53
+#: libs/uix/components/config/password_dialog/dialog.py:45
+msgid "Password Update"
+msgstr "Senha Atualizada"
+
+#: libs/uix/components/config/password_dialog/dialog.py:77
+#: libs/uix/components/home/task_dialog/dialog.py:98
+msgid "Errors occurred in the task creation:"
+msgstr "Ocorreram alguns erros ao criar sua tarefa:"
+
+#: libs/uix/components/config/password_dialog/dialog.py:95
+msgid "Password changed successfully."
+msgstr "Senha alterada com sucesso."
+
+#: libs/uix/components/config/password_dialog/flags.py:12
+msgid "All fields are required."
+msgstr "Todos os campos são obrigatórios."
+
+#: libs/uix/components/config/password_dialog/flags.py:16
+msgid "Incorrect current password."
+msgstr "Senha atual está incorreta"
+
+#: libs/uix/components/config/password_dialog/flags.py:20
+msgid "The new password or the confirmation are too long."
+msgstr "A nova senha ou a confirmação estão muito longas."
+
+#: libs/uix/components/config/password_dialog/flags.py:24
+msgid "Passwords do not match."
+msgstr "Senhas não coincídem."
+
+#: libs/uix/components/home/task_dialog/content.py:37
+msgid "Title"
+msgstr "Título"
+
+#: libs/uix/components/home/task_dialog/content.py:47
+msgid "Date"
+msgstr "Data"
+
+#: libs/uix/components/home/task_dialog/content.py:58
+msgid "Start"
+msgstr "Início"
+
+#: libs/uix/components/home/task_dialog/content.py:69
+msgid "End"
+msgstr "Término"
+
+#: libs/uix/components/home/task_dialog/content.py:78
+msgid "Description"
+msgstr "Descrição"
+
+#: libs/uix/components/home/task_dialog/content.py:91
+msgid "Tag"
+msgstr "Grupo"
+
+#: libs/uix/components/home/task_dialog/dialog.py:36
+msgid "Remove"
+msgstr "Remover"
+
+#: libs/uix/components/home/task_dialog/dialog.py:53
 msgid "Create or Update a Task"
 msgstr "Atualização ou Criação de Tarefas"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:55
+#: libs/uix/components/home/task_dialog/dialog.py:55
 msgid ""
 "In this window you can create or update a task. Next, you can see the "
 "task fields, please complete and edit then, and click in Accept. If your "
@@ -46,93 +117,105 @@ msgstr ""
 "Finalizar. Caso clique em Remover e estiver editando uma tarefa "
 "existente, a tarefa será removida."
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:98
-msgid "Errors occurred in the task creation:"
-msgstr "Ocorreram alguns erros ao criar sua tarefa:"
-
-#: libs/uix/components/home/task_dialog/task_dialog.py:116
+#: libs/uix/components/home/task_dialog/dialog.py:116
 msgid "This tag doesn't exists, want to create this?"
 msgstr "Esse grupo não existe, deseja criá-lo?"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:121
+#: libs/uix/components/home/task_dialog/dialog.py:121
 msgid "Create"
 msgstr "Criar"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:139
+#: libs/uix/components/home/task_dialog/dialog.py:139
 msgid "Are you sure?"
 msgstr "Você tem certeza?"
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:142
+#: libs/uix/components/home/task_dialog/dialog.py:142
 msgid "After remove, this task can't be recovered."
 msgstr "Após remover uma tarefa, não há como recuperá-la."
 
-#: libs/uix/components/home/task_dialog/task_dialog.py:147
+#: libs/uix/components/home/task_dialog/dialog.py:147
 msgid "Continue"
 msgstr "Continuar"
 
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:29
-msgid "Title"
-msgstr "Título"
-
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:41
-msgid "Date"
-msgstr "Data"
-
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:52
-msgid "Start"
-msgstr "Início"
-
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:63
-msgid "End"
-msgstr "Término"
-
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:71
-msgid "Description"
-msgstr "Descrição"
-
-#: libs/uix/components/home/task_dialog/task_dialog_content.py:85
-msgid "Tag"
-msgstr "Grupo"
-
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:13
+#: libs/uix/components/home/task_dialog/flags.py:13
 msgid "Title need to stay between 3 and {0} characters"
 msgstr "O Título precisa conter mais que 3 e menos que {0} caracteres"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:21
+#: libs/uix/components/home/task_dialog/flags.py:21
 msgid "Date is required"
 msgstr "A Data é obrigatória"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:25
+#: libs/uix/components/home/task_dialog/flags.py:25
 msgid "Start Time is required"
 msgstr "O Horário de Início é obrigatório"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:29
+#: libs/uix/components/home/task_dialog/flags.py:29
 msgid "End Time is required"
 msgstr "O Horário de Fim é obrigatório"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:33
+#: libs/uix/components/home/task_dialog/flags.py:33
 msgid "The task duration require 15 minutes or more"
 msgstr "O Horário de Fim precisa estar pelo menos 15 minutos depois do de Início"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:37
+#: libs/uix/components/home/task_dialog/flags.py:37
 msgid "The description can't exceed {0} characters"
 msgstr "A descrição precisa conter menos que {0} caracteres"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:45
+#: libs/uix/components/home/task_dialog/flags.py:45
 msgid "Unknown Tag"
 msgstr "Grupo não encontrado"
 
-#: libs/uix/components/home/task_dialog/task_dialog_error_flags.py:49
+#: libs/uix/components/home/task_dialog/flags.py:49
 msgid "The Tag name can't exceed {0} characters"
 msgstr "O nome do Grupo precisa conter menor que {0} caracteres"
 
-#: libs/uix/components/keep_logged_checkbox/klcheckbox.py:22
+#: libs/uix/components/login/klcheckbox.py:22
 msgid "Keep logged in."
 msgstr "Permanecer logado."
 
-#: libs/uix/home/home.py:23
+#: libs/uix/home/home.py:28
 msgid "This feature isn't implemented yet."
 msgstr "Essa função ainda não foi implementada."
+
+#: libs/uix/home/nav/config/config.kv:26
+msgid "Account"
+msgstr "Conta"
+
+#: libs/uix/home/nav/config/config.kv:44
+msgid "Change password."
+msgstr "Alterar senha"
+
+#: libs/uix/home/nav/config/config.kv:49
+msgid "Logout."
+msgstr "Sair"
+
+#: libs/uix/home/nav/config/config.kv:57
+msgid "General"
+msgstr "Geral"
+
+#: libs/uix/home/nav/config/config.kv:64
+msgid "Dark Mode"
+msgstr "Modo Escuro"
+
+#: libs/uix/home/nav/config/config.kv:68
+msgid "Language."
+msgstr "Linguagem"
+
+#: libs/uix/home/nav/config/config.kv:77
+msgid "Advanced"
+msgstr "Avançado"
+
+#: libs/uix/home/nav/config/config.kv:84
+msgid "Task Title max size."
+msgstr "Tamanho máximo do Título da Tarefa."
+
+#: libs/uix/home/nav/config/config.kv:89
+msgid "Task Description max size."
+msgstr "Tamanho máximo da Descrição da Tarefa"
+
+#: libs/uix/home/nav/config/config.kv:94
+msgid "Task Tag max size."
+msgstr "Tamanho máximo do Nome do Grupo da Tarefa"
 
 #: libs/uix/login/login/login.kv:7
 msgid "Login"
@@ -154,23 +237,23 @@ msgstr "Entrar"
 msgid "Not registered?"
 msgstr "Não possui uma conta?"
 
-#: libs/uix/login/login/login.py:34 libs/uix/login/register/register.py:43
+#: libs/uix/login/login/login.py:40 libs/uix/login/register/register.py:44
 msgid "Email is required!"
 msgstr "Email é obrigatório!"
 
-#: libs/uix/login/login/login.py:39 libs/uix/login/register/register.py:46
+#: libs/uix/login/login/login.py:45 libs/uix/login/register/register.py:47
 msgid "Password is required!"
 msgstr "Senha é obrigatória!"
 
-#: libs/uix/login/login/login.py:49 libs/uix/login/register/register.py:54
+#: libs/uix/login/login/login.py:55 libs/uix/login/register/register.py:55
 msgid "Invalid Email."
 msgstr "Email inválido."
 
-#: libs/uix/login/login/login.py:52 libs/uix/login/register/register.py:60
+#: libs/uix/login/login/login.py:58 libs/uix/login/register/register.py:61
 msgid "Too long Password, max 32 characters."
 msgstr "A senha pode conter no máximo 32 caracteres."
 
-#: libs/uix/login/login/login.py:55
+#: libs/uix/login/login/login.py:61
 msgid "Invalid Password."
 msgstr "Senha inválida."
 
@@ -186,15 +269,15 @@ msgstr "Nome"
 msgid "Already registered?"
 msgstr "Já registrado?"
 
-#: libs/uix/login/register/register.py:37
+#: libs/uix/login/register/register.py:38
 msgid "Name is required!"
 msgstr "Nome é obrigatório!"
 
-#: libs/uix/login/register/register.py:40
+#: libs/uix/login/register/register.py:41
 msgid "Name need to stay between three and eighty characters."
 msgstr "Nome precisa ter mais que três e menos que oitenta caracteres."
 
-#: libs/uix/login/register/register.py:57
+#: libs/uix/login/register/register.py:58
 msgid "Name not alphabetic."
 msgstr "Nome só pode conter caracteres alfabéticos."
 

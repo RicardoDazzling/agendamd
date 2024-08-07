@@ -1,13 +1,14 @@
 import os
 import logging
-from time import mktime
+from base64 import b64encode, b64decode
 
 import numpy as np
 
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, Callable
 from datetime import datetime, timedelta, date
 
 from Cryptodome.Cipher import AES
+from Cryptodome.Cipher._mode_cfb import CfbMode
 from Cryptodome.Hash import MD5
 
 
@@ -41,6 +42,17 @@ def encrypt(filepath: str, key: bytes, iv: bytes, remove_npy: bool = True) -> st
     return __enfile
 
 
+def encrypt_data(data: str,
+                 key: Optional[bytes] = None,
+                 iv: Optional[bytes] = None,
+                 aes: Optional[CfbMode] = None) -> str:
+    if aes is None:
+        if key is None or iv is None:
+            raise ValueError("Empty required arguments.")
+        aes = AES.new(key, AES.MODE_CFB, iv=iv)
+    return b64encode(aes.encrypt(data.encode('utf-8'))).decode('ascii')
+
+
 def decrypt(en_filepath: str, key: bytes, iv: bytes, remove_amc: bool = False) -> str:
     if '.amc' not in en_filepath:
         raise ValueError("Wrong encrypted file extension")
@@ -58,6 +70,17 @@ def decrypt(en_filepath: str, key: bytes, iv: bytes, remove_amc: bool = False) -
         file.write(__file_val)
 
     return __file
+
+
+def decrypt_data(data: str,
+                 key: Optional[bytes] = None,
+                 iv: Optional[bytes] = None,
+                 aes: Optional[CfbMode] = None) -> str:
+    if aes is None:
+        if key is None or iv is None:
+            raise ValueError("Empty required arguments.")
+        aes = AES.new(key, AES.MODE_CFB, iv=iv)
+    return aes.decrypt(b64decode(data.encode('ascii'))).decode('utf-8')
 
 
 def log(self, message: str, log_type: Literal['error', 'info', 'warning'] = 'error'):
@@ -128,8 +151,3 @@ def get_date(datestamp: int) -> date:
     _1970 = date(1970, 1, 1)
     d = _1970 + td
     return d
-
-
-def set_var(instance, value):
-    instance = value
-    return instance

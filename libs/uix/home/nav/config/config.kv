@@ -1,0 +1,88 @@
+
+
+<ConfigScreen>:
+    MDScrollView:
+        id: scroll
+        do_scroll_x: False
+        MDBoxLayout:
+            orientation: 'vertical'
+            adaptive_height: True
+            spacing: "20dp"
+            padding: "20dp"
+            MDStaticCard:
+                orientation: 'vertical'
+                adaptive_height: True
+                spacing: "20dp"
+                padding: "20dp"
+                ConfigCardHeader:
+                    icon: 'account'
+                    text: _.bind_and_return_text(self, 'Account')
+                MDDivider:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    adaptive_height: True
+                    spacing: "10dp"
+                    MDLabel:
+                        id: lbl_name
+                        font_style: 'Title'
+                        adaptive_height: True
+                    MDLabel:
+                        id: lbl_email
+                        font_style: 'Body'
+                        adaptive_height: True
+                    MDButton:
+                        style: 'text'
+                        on_release: root.change_password()
+                        ConfigButtonText:
+                            text: _.bind_and_return_text(self, 'Change password.')
+                    MDButton:
+                        style: 'text'
+                        on_release: root.logout()
+                        ConfigButtonText:
+                            text: _.bind_and_return_text(self, 'Logout.')
+            MDStaticCard:
+                orientation: 'vertical'
+                adaptive_height: True
+                spacing: "20dp"
+                padding: "20dp"
+                ConfigCardHeader:
+                    icon: 'cog'
+                    text: _.bind_and_return_text(self, 'General')
+                MDDivider:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    adaptive_height: True
+                    spacing: "10dp"
+                    ConfigSwitch:
+                        id: swt_dark_mode
+                        text: _.bind_and_return_text(self, 'Dark Mode')
+                    ConfigItem:
+                        id: itm_language
+                        on_release: root.on_item_release(*args)
+                        text: _.bind_and_return_text(self, "Language.")
+            MDStaticCard:
+                orientation: 'vertical'
+                adaptive_height: True
+                spacing: "20dp"
+                padding: "20dp"
+                ConfigCardHeader:
+                    icon:'account-hard-hat'
+                    text: _.bind_and_return_text(self, 'Advanced')
+                MDDivider:
+                MDList:
+                    adaptive_height: True
+                    ConfigItem:
+                        id: itm_title
+                        on_release: root.on_item_release(*args)
+                        text: _.bind_and_return_text(self, "Task Title max size.")
+                        numeric: True
+                    ConfigItem:
+                        id: itm_description
+                        on_release: root.on_item_release(*args)
+                        text: _.bind_and_return_text(self, "Task Description max size.")
+                        numeric: True
+                    ConfigItem:
+                        id: itm_tag
+                        on_release: root.on_item_release(*args)
+                        text: _.bind_and_return_text(self, "Task Tag max size.")
+                        numeric: True

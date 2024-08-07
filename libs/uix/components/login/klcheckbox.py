@@ -18,11 +18,10 @@ class KLCheckbox(MDBoxLayout):
         self.checkbox.bind(active=self.setter("active"))
         self.bind(active=self.checkbox.setter("active"))
 
-        self.label = MDLabel(
-            text=_("Keep logged in."),
+        self.label = _.bind_translation(MDLabel(
             adaptive_height=self.adaptive_height,
             padding_x=dp(12),
             pos_hint={"center_y": .5}
-        )
+        ), 'text', "Keep logged in.")
         self.add_widget(self.checkbox)
         self.add_widget(self.label)

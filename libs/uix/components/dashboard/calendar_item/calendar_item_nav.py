@@ -3,6 +3,8 @@ from kivy.properties import BooleanProperty, OptionProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 
+from libs.applibs.utils import ignore_args
+
 
 class CalendarItemNavButton(MDIconButton):
     direction = OptionProperty('left', options=['left', 'right'])
@@ -27,7 +29,8 @@ class CalendarItemNavButton(MDIconButton):
             else:
                 return 'arrow-right-drop-circle'
 
-    def update_metrics(self, *args):
+    @ignore_args
+    def update_metrics(self):
         self.size_hint = (None, None)
         self.size = (dp(20), dp(20))
 

@@ -3,7 +3,6 @@ __all__ = ['MDTextFieldTrailingIconButton']
 from typing import Optional
 
 from kivy.core.window import Window
-from kivy.core.window.window_sdl2 import WindowSDL
 from kivy.event import EventDispatcher
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty
@@ -24,7 +23,8 @@ class MDTextFieldTrailingIconButton(MDTextFieldTrailingIcon, EventDispatcher):
     def on_press(self, *args):
         pass
 
-    def on_mouse_down(self, window: WindowSDL, x: int, y: int, button: str, *modifiers):
+    def on_mouse_down(self, *args):  # (0) window: WindowSDL, (1) x: int, (2) y: int, (3) button: str, (4...) *modifiers
+        button = args[3]
         if self.text_field is not None and button == 'left':
             txt = self.text_field
             x_start = (txt.width + txt.x) - (self.texture_size[1]) - dp(14)

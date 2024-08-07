@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, cached_property
 from typing import Union, Optional
 
 from kivy.app import App
@@ -15,8 +15,9 @@ from babel.dates import format_datetime, format_time
 from datetime import datetime, timedelta, time
 from pandas import DataFrame
 
-from libs.uix.components.home import CalendarItem, MinimizedCalendarItem, TaskDialog
-from libs.applibs.utils import get_datestamp_from_date
+from libs.uix.components.dashboard import CalendarItem, MinimizedCalendarItem
+from libs.uix.components.home.task_dialog import TaskDialog
+from libs.applibs.utils import get_datestamp_from_date, ignore_instance, only_the_instance, ignore_args
 from globals import (
     TASKS,
     TAGS,
@@ -27,7 +28,7 @@ from globals import (
 class DashboardScreen(MDScreen):
     cell_width = NumericProperty(0)
     cell_height = dp(120)
-    _task_dialog: Optional[TaskDialog] = ObjectProperty(None)
+    _task_dialog = ObjectProperty(None)
     _grouped_tasks: list[dict[int, Union[list, dict, tuple]]] = [{}, {}, {}, {}, {}]
     _grouped_items: list[dict[int, Union[MinimizedCalendarItem, CalendarItem]]] = [{}, {}, {}, {}, {}]
     _loading: dict = {}
@@ -36,7 +37,6 @@ class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):
         self._app = App.get_running_app()
         self._datetime = datetime.now()
-        self._task_dialog = TaskDialog()
         self._today_datestamp: int = get_datestamp_from_date(self._datetime.date())
         super(DashboardScreen, self).__init__(**kwargs)
         TASKS.bind(on_add=self.on_task_add, on_update=self.on_task_update, on_remove=self.on_task_remove)
@@ -56,7 +56,8 @@ class DashboardScreen(MDScreen):
     _scroll: Optional[MDScrollView] = ObjectProperty(None)
     _table: Optional[MDBoxLayout] = ObjectProperty(None)
 
-    def on_ids(self, instance, value: dict):
+    @ignore_instance
+    def on_ids(self, value: dict):
         if isinstance(value, dict):
             __calendar: Optional[MDRelativeLayout] = value.get('calendar', None)
             __calendar_header: Optional[MDRelativeLayout] = value.get('calendar_header', None)
@@ -262,7 +263,8 @@ class DashboardScreen(MDScreen):
         self._scroll_to_now()
         self._btn_task.icon = 'plus-outline'
 
-    def add_task(self, *args):
+    @ignore_args
+    def add_task(self):
         self._task_dialog.item = None
         self._task_dialog.open()
 
@@ -276,16 +278,22 @@ class DashboardScreen(MDScreen):
     def _update_header(self):
         self._lbl_year.text = str(self._datetime.year)
         self._lbl_month.text = format_datetime(self._datetime, "MMMM", locale=_.language)
+        _.bind(lambda lbl: lbl.__setattr__('text', format_datetime(self._datetime, "MMMM", locale=_.language)),
+               self._lbl_month)
+
         __header: MDRelativeLayout = self._calendar_header
         __cell_width = self.cell_width
         __datetime = datetime.today() - timedelta(days=1)
         for i in range(6):
+            __label = MDLabel(
+                text=format_datetime(__datetime, "EEEE", locale=_.language),
+                theme_text_color="Hint",
+                halign="center"
+            )
+            _.bind(lambda lbl: lbl.__setattr__('text', format_datetime(__datetime, "EEEE", locale=_.language)),
+                   __label)
             __box_layout = MDBoxLayout(
-                MDLabel(
-                    text=format_datetime(__datetime, "EEEE", locale=_.language),
-                    theme_text_color="Hint",
-                    halign="center"
-                ),
+                __label,
                 MDLabel(text=str(__datetime.day), halign="center"),
                 orientation="vertical",
                 size_hint=(None, 1),
@@ -295,6 +303,8 @@ class DashboardScreen(MDScreen):
             )
 
             def set_x(box_layout, idx, instance, value):
+                if instance:
+                    pass
                 box_layout.x = idx * value
 
             self.bind(cell_width=__box_layout.setter("width"))
@@ -392,23 +402,30 @@ class DashboardScreen(MDScreen):
     def _create_basics(self) -> None:
 
         def set_x(box_layout, idx, instance, value):
+            if instance:
+                pass
             box_layout.x = idx * value
 
         for i in range(24):
+            __label = MDLabel(
+                text=format_time(time(hour=i), format='short', locale=_.language),
+                theme_text_color="Hint",
+                halign="right",
+                adaptive_height=True,
+                pos_hint={"top": 1}
+            )
+            _.bind(lambda lbl: lbl.__setattr__('text', format_time(time(hour=i), format='short', locale=_.language)),
+                   __label)
             __box_layout = MDBoxLayout(
-                MDLabel(
-                    text=format_time(time(hour=i), format='short', locale=_.language),
-                    theme_text_color="Hint",
-                    halign="right",
-                    adaptive_height=True,
-                    pos_hint={"top": 1}
-                ),
+                __label,
                 size_hint=(None, None),
                 height=self.cell_height,
                 width=self.cell_width,
                 pos=(0, (23 - i) * self.cell_height),
                 md_bg_color=self.theme_cls.surfaceContainerLowColor
             )
+            self.theme_cls.bind(
+                surfaceContainerLowColor=lambda ins, val, lay=__box_layout: lay.setter('md_bg_color')(lay, val))
             self.bind(cell_width=__box_layout.setter("width"))
             self._calendar.add_widget(__box_layout)
         for i in range(1, 6):
@@ -418,6 +435,8 @@ class DashboardScreen(MDScreen):
                 size_hint_y=1,
                 x=self.cell_width * i
             )
+            self.theme_cls.bind(
+                surfaceContainerLowColor=lambda ins, val, lay=__divider: lay.setter('color')(lay, val))
             self.bind(cell_width=partial(set_x, __divider, i))
             self._calendar.add_widget(__divider)
 
@@ -445,7 +464,8 @@ class DashboardScreen(MDScreen):
         __scroll.scroll_y = __y
         self.debug = 1
 
-    def _update_scroll_height(self, instance: MDBoxLayout, value: int):
+    @only_the_instance
+    def _update_scroll_height(self, instance: MDBoxLayout):
         if self._scroll is None or self._calendar_header is None:
             return
         if isinstance(instance.padding, list):
@@ -471,7 +491,8 @@ class DashboardScreen(MDScreen):
                 else:
                     self.enter()
 
-    def _update_width(self, calendar, value):
+    @ignore_instance
+    def _update_width(self, value):
         self.cell_width = value // 6
 
     def _update_collaterals(self,

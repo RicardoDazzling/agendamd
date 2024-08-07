@@ -4,12 +4,12 @@
     orientation: "vertical"
     LoginCard:
         LoginLabel:
-            text: _("Login")
+            text: _.bind_and_return_text(self, "Login")
         LoginTextField:
             id: tf_email
             next: tf_password
             MDTextFieldHintText:
-                text: _("Email")
+                text: _.bind_and_return_text(self, "Email")
             MDTextFieldLeadingIcon:
                 icon: "email-outline"
             MDTextFieldHelperText:
@@ -19,7 +19,7 @@
             id: tf_password
             next: btn_form
             MDTextFieldHintText:
-                text: _("Password")
+                text: _.bind_and_return_text(self, "Password")
             MDTextFieldLeadingIcon:
                 icon: "account-key-outline"
             MDTextFieldHelperText:
@@ -32,11 +32,11 @@
             on_release:
                 root.login(tf_email, help_email, tf_password, help_password)
             MDButtonText:
-                text: _("Login in")
+                text: _.bind_and_return_text(self, "Login in")
                 pos_hint: {"center_x": .5, "center_y": .5}
         KLCheckbox:
             id: cb_keep
     LoginTextButton:
         on_release: root.goto_register()
         MDButtonText:
-            text: _("Not registered?")
+            text: _.bind_and_return_text(self, "Not registered?")

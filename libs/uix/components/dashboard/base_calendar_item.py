@@ -57,11 +57,9 @@ class BaseCalendarItem(MDStaticCard, HoverBehavior):
             self.pos = (__x, __y)
 
     def format_duration(self) -> str:
-        return f"{
-                  format_time(time(*(divmod(self.start, 60))), format='short', locale=CONFIG.language)
-                  } - {
-                  format_time(time(*(divmod(self.end, 60))), format='short', locale=CONFIG.language)
-                  }"
+        __start_formated = format_time(time(*(divmod(self.start, 60))), format='short', locale=CONFIG.language)
+        __end_formated = format_time(time(*(divmod(self.end, 60))), format='short', locale=CONFIG.language)
+        return f"{__start_formated} - {__end_formated}"
 
     def set_properties_by_dict(self, item: Optional[dict] = None, old: Optional[dict] = None):
         if item is not None:

@@ -1,18 +1,18 @@
+__all__ = ["TAGS"]
+
 import os
 import logging
 
 import numpy as np
 
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 
 from settings import settings
 from .tasks import TASKS
 from .users import USERS
-from .config import CONFIG
 
+from libs.devlibs.translation import translator as _
 from libs.applibs.utils import array_size, encrypt, md5_hash, decrypt
-
-__all__ = ["TAGS"]
 
 
 class Tags:
@@ -20,9 +20,15 @@ class Tags:
     datafile: Optional[str] = None
 
     _array: Optional[np.ndarray] = None
+    _max_tag_size: int = 20
+
+    _bindings = {
+        "on_data": []
+    }
 
     def __init__(self):
-        USERS.bind(on_login=self._update_datafile)
+        USERS.bind(on_login=self._update_datafile, on_logout=self.clean,
+                   on_task_max_tag_size=self._update_max_tag_size)
         self._update_datafile()
 
     def __iter__(self):
@@ -58,11 +64,10 @@ class Tags:
             raise TypeError(f"Tag doesn't is from 'str' type, but from '{type(tag)}'")
         self._len(tag)
         __old_dtype = array_size(self._array.size)
-        self._array = np.append(self._array, [tag]).astype("U80")
+        self._array = np.append(self._array, [tag]).astype("U" + str(self._max_tag_size))
         __new_dtype = array_size(self._array.size)
         if __old_dtype != __new_dtype:
-            CONFIG.tag_int_size = __new_dtype
-        TASKS.resize_tag(__new_dtype)
+            USERS.tag_int_size = __new_dtype
         self.save()
         return self._array.size - 1
 
@@ -106,8 +111,11 @@ class Tags:
         USERS.logged(raise_exception=True)
         with open(self.datafile, "wb") as file:
             np.save(file, self._array, False, False)
+
+        self.on_data(list(self))
+
         encrypt(self.datafile,
-                md5_hash(USERS.user.password_string),
+                md5_hash(USERS.password_string),
                 md5_hash(settings.NAME),
                 remove_npy=False)
 
@@ -116,32 +124,55 @@ class Tags:
         try:
             with open(self.datafile, "rb") as file:
                 self._array = np.load(file)
+
+            self.on_data(list(self))
+
         except ValueError:
             if already_corrupted:
                 raise ValueError("Tag data was corrupted.")
             logging.error("TAGS: Tag data was corrupted, trying to recover...")
             decrypt(self.datafile + '.amc',
-                    md5_hash(USERS.user.password_string),
+                    md5_hash(USERS.password_string),
                     md5_hash(settings.NAME))
             self.load(True)
+
+    def clean(self):
+        self.datafile = None
+        self._array = None
+
+        self.on_data([])
+
+    def bind(self, on_data: Optional[Callable] = None):
+        if on_data is not None:
+            self._bindings["on_data"].append(on_data)
+
+    def on_data(self, new_data: list):
+        for method in self._bindings["on_data"]:
+            method(new_data)
 
     def _update_datafile(self):
         self.datafile = None if not USERS.logged() else os.path.join(USERS.user_db_dir, 'tags.npy')
         if self.datafile is not None:
             if os.path.exists(self.datafile + '.amc') and not os.path.exists(self.datafile):
                 decrypt(self.datafile + '.amc',
-                        md5_hash(USERS.user.password_string),
+                        md5_hash(USERS.password_string),
                         md5_hash(settings.NAME))
             if not os.path.exists(self.datafile):
-                self._array = np.array(["Padrão"], dtype="U80")
+                self._array = np.array([_("Default")], dtype="U" + str(self._max_tag_size))
                 self.save()
             else:
                 self.load()
 
-    @staticmethod
-    def _len(tag: str):
-        if 3 > len(tag) > int(CONFIG.task_max_tag_size):
-            raise ValueError("Tag must be between 3 and 80 characters")
+    def _update_max_tag_size(self, new_size: int):
+        if new_size == self._max_tag_size:
+            return
+        self._max_tag_size = new_size
+        self._array = self._array.astype(f'U{new_size}')
+        self.save()
+
+    def _len(self, tag: str):
+        if 3 > len(tag) > self._max_tag_size:
+            raise ValueError(f"Tag must be between 3 and {self._max_tag_size} characters")
 
 
 if "TAGS" not in globals():

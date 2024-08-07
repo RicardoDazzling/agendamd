@@ -8,6 +8,8 @@
         MDNavigationRail:
             id: nav_rail
             type: "unselected"
+            theme_bg_color: 'Custom'
+            md_bg_color: app.theme_cls.surfaceContainerLowestColor
             MDNavigationRailItem:
                 id: dashboard_item
                 on_active: root._goto('dashboard', *args)
@@ -23,5 +25,10 @@
                 on_active: root._goto('inbox', *args)
                 MDNavigationRailItemIcon:
                     icon: "inbox-outline"
+            MDNavigationRailItem:
+                id: config_item
+                on_active: root._goto('config', *args)
+                MDNavigationRailItemIcon:
+                    icon: "cog-outline"
         MainScreenManager:
             id: screen_manager

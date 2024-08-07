@@ -10,45 +10,53 @@ from typing import Optional, Literal
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 from globals import translator as _
-from libs.uix.home.nav import DashboardScreen
+from libs.uix.home.nav import DashboardScreen, ConfigScreen
+from libs.uix.components.home.task_dialog import TaskDialog
 
 
 class HomeScreen(MDScreen):
-    active_item: Optional[Literal['dashboard', 'list', 'inbox']] = None
+    active_item: Optional[Literal['dashboard', 'list', 'inbox', 'config']] = None
     _screen_manager: Optional[MDScreenManager] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._dashboard_screen = DashboardScreen(name='dashboard')
+        self.task_dialog = TaskDialog()
+        self._dashboard_screen = DashboardScreen(name='dashboard', _task_dialog=self.task_dialog)
+        self._config_screen = ConfigScreen(name='config')
         self._not_implemented_snackbar = MDSnackbar(
-            MDSnackbarText(
-                text=_("This feature isn't implemented yet."),
-            ),
+            _.bind_translation(MDSnackbarText(), 'text', "This feature isn't implemented yet."),
             y=dp(24),
             pos_hint={"right": .98},
             size_hint=(None, None),
             width=dp(300),
         )
 
-    def on_ids(self, instance, value: dict):
+    @staticmethod
+    def on_ids(self, value: dict):
         if isinstance(value, dict):
             __nav_rail: Optional[MDNavigationRail] = value.get('nav_rail', None)
             __dashboard_item: Optional[MDNavigationRailItem] = value.get('dashboard_item', None)
             __list_item: Optional[MDNavigationRailItem] = value.get('list_item', None)
             __inbox_item: Optional[MDNavigationRailItem] = value.get('inbox_item', None)
+            __config_item: Optional[MDNavigationRailItem] = value.get('config_item', None)
             self._screen_manager = value.get('screen_manager', None)
             if self._screen_manager is not None:
                 self._screen_manager.bind(current=self.on_current)
                 self._add_screens()
 
     def on_pre_enter(self, *args):
+        super().on_pre_enter(*args)
         self._add_screens(True)
+
+    def on_pre_leave(self, *args):
+        super().on_pre_leave(*args)
+        self._remove_screens()
 
     def on_current(self, instance, screen_name: str):
         if not screen_name:
             return
         __nav_rail: MDNavigationRail = self.ids.nav_rail
-        __item_name: list[Literal['dashboard', 'list', 'inbox']] = ['dashboard', 'list', 'inbox']
+        __item_name: list[Literal['dashboard', 'list', 'inbox', 'config']] = ['dashboard', 'list', 'inbox', 'config']
         __active_item = __item = None
         for item_name in __item_name:
             if item_name in screen_name:
@@ -68,7 +76,7 @@ class HomeScreen(MDScreen):
         __icon.icon = __icon.icon.replace('-outline', '')
         if self.active_item is not None:
             __old_item = self.ids.get(self.active_item + '_item')
-            __old_icon = getattr(__item, '_icon_item')
+            __old_icon = getattr(__old_item, '_icon_item')
             __old_icon.icon = __old_icon.icon.replace('-outline', '') + '-outline'
         self.active_item = __active_item
 
@@ -78,6 +86,15 @@ class HomeScreen(MDScreen):
         if self._screen_manager.screen_names:
             return
         self._screen_manager.add_widget(self._dashboard_screen)
+        self._screen_manager.add_widget(self._config_screen)
+
+    def _remove_screens(self):
+        if self._screen_manager is None:
+            return
+        if not self._screen_manager.screen_names:
+            return
+        self._screen_manager.remove_widget(self._config_screen)
+        self._screen_manager.remove_widget(self._dashboard_screen)
 
     def _goto(self, screen_name: Literal['dashboard', 'list', 'inbox'],
               instance: Optional[MDNavigationRailItem] = None, value: bool = True):
@@ -90,8 +107,8 @@ class HomeScreen(MDScreen):
                 self._not_implemented_snackbar.open()
             instance.active = False
             return
-        __screen_names = ['dashboard', 'list', 'inbox']
+        __screen_names = ['dashboard', 'list', 'inbox', 'config']
         if __screen_names.index(screen_name) < __screen_names.index(self._screen_manager.current):
-            self._screen_manager.switch_to(screen_name, transition=SlideTransition(), direction='up')
-        else:
             self._screen_manager.switch_to(screen_name, transition=SlideTransition(), direction='down')
+        else:
+            self._screen_manager.switch_to(screen_name, transition=SlideTransition(), direction='up')

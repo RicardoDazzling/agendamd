@@ -1,32 +1,23 @@
+__pycache__ = __import__('settings').start()
+__version__ = __import__('version').__version__
+
 import os
 
 # Environments Variables
-import sys
-
 from settings import settings
 
-os.environ["NAME"] = settings.NAME
-os.environ["CACHE_DIR"] = settings.CACHE_DIR
-os.environ['KIVY_HOME'] = os.path.join(settings.CACHE_DIR, '.kivy')
-__pycache__ = os.path.join(settings.CACHE_DIR, 'pycache')
-os.environ["PYTHONPYCACHEPREFIX"] = __pycache__
-sys.pycache_prefix = __pycache__
-
-from globals import USERS
-from libs.devlibs import translator
+from globals import *
+from libs.devlibs import translator, Translator
 
 # Kaki Dependencies:
 # import os
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
-Window.borderless = True
 from kivy.factory import Factory
 from kivy.lang import Builder
 
 # My Dependencies.
-import trio
-
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ObjectProperty
 from kivy.lang import global_idmap
@@ -34,7 +25,6 @@ from kivymd.theming import ThemeManager
 from logging import getLogger, WARNING
 from typing import Optional
 
-from libs.devlibs import Translator
 from libs.applibs.utils import log
 
 # Disable debug requests log:
@@ -47,8 +37,6 @@ class AgendaMDApp(MDApp):
 
     # DEBUG = 1  # set this to 0 make live app not working
 
-    nursery = None
-
     CURRENT_DIR = os.getcwd()
 
     NAME = settings.NAME
@@ -56,32 +44,38 @@ class AgendaMDApp(MDApp):
     CACHE_DIR = settings.CACHE_DIR
 
     KV_FILES = [
-        os.path.join(os.getcwd(), "libs\\uix\\components\\login\\login_components.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\calendar_item\\calendar_item.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\components\\home\\minimized_calendar_item\\minimized_calendar_item.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\login\\login\\login.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\login\\register\\register.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\home\\home.kv"),
-        os.path.join(os.getcwd(), "libs\\uix\\home\\nav\\dashboard\\dashboard.kv"),
+        "components\\login\\__init__.kv",
+        "components\\dashboard\\calendar_item\\calendar_item.kv",
+        "components\\dashboard\\minimized_calendar_item\\minimized_calendar_item.kv",
+        "login\\login\\login.kv",
+        "login\\register\\register.kv",
+        "home\\home.kv",
+        "home\\nav\\dashboard\\dashboard.kv",
+        "home\\nav\\config\\config.kv",
     ]
 
     CLASSES = {
-        "KLCheckbox": "libs.uix.components",
-        "MDTextFieldTrailingIconButton": "libs.uix.components.textfields",
-        "ComboTextField": "libs.uix.components.textfields",
-        "DateTimeTextField": "libs.uix.components.textfields",
-        "LoginTextField": "libs.uix.components.login",
-        "LoginPasswordTextField": "libs.uix.components.login",
-        "LoginFormButton": "libs.uix.components.login",
-        "MDStaticCard": "libs.uix.components.home",
-        "BaseCalendarItem": "libs.uix.components.home",
-        "CalendarItem": "libs.uix.components.home",
-        "CalendarItemNav": "libs.uix.components.home",
-        "MinimizedCalendarItem": "libs.uix.components.home",
-        "LoginScreen": "libs.uix.login",
-        "RegisterScreen": "libs.uix.login",
-        "HomeScreen": "libs.uix.home",
-        "DashboardScreen": "libs.uix.home.nav",
+        "KLCheckbox": "components",
+        "MDTextFieldTrailingIconButton": "components.textfields",
+        "ComboTextField": "components.textfields",
+        "DateTimeTextField": "components.textfields",
+        "LoginTextField": "components.login",
+        "LoginPasswordTextField": "components.login",
+        "LoginFormButton": "components.login",
+        "MDStaticCard": "components.home",
+        "BaseCalendarItem": "components.home",
+        "CalendarItem": "components.home",
+        "CalendarItemNav": "components.home",
+        "MinimizedCalendarItem": "components.home",
+        "ConfigButtonText": "components.config",
+        "ConfigCardHeader": "components.config",
+        "ConfigItem": "components.config",
+        "ConfigSwitch": "components.config",
+        "LoginScreen": "login",
+        "RegisterScreen": "login",
+        "HomeScreen": "home",
+        "DashboardScreen": "home.nav",
+        "ConfigScreen": "home.nav",
     }
 
     translator: Optional[Translator] = ObjectProperty(None)
@@ -94,19 +88,10 @@ class AgendaMDApp(MDApp):
         self.IMAGE_CACHE_DIR = os.path.join(self.CACHE_DIR, 'img')
         if not os.path.exists(self.IMAGE_CACHE_DIR):
             os.mkdir(self.IMAGE_CACHE_DIR)
+            CONFIG.dark_mode = self.theme_cls.theme_style == 'Dark'
         super().__init__(**kwargs)
-
-    async def app_func(self):
-
-        async with trio.open_nursery() as nursery:
-            self.nursery = nursery
-
-            async def run_wrapper(*args):
-                # trio needs to be set so that it'll be used for the event loop
-                await self.async_run(async_lib='trio')
-                nursery.cancel_scope.cancel()
-
-            nursery.start_soon(run_wrapper)
+        self.theme_cls.theme_style_switch_animation = True
+        self.theme_cls.theme_style = "Dark" if CONFIG.dark_mode else "Light"
 
     def build(self):
         super(AgendaMDApp, self).build()
@@ -120,24 +105,20 @@ class AgendaMDApp(MDApp):
     def on_start(self):
         super(AgendaMDApp, self).on_start()
         Window.show()
-        self.translation_init()
-        self.nursery.start_soon(self._build)
+        self.global_init()
 
-    async def _build(self, *args):
         log(self, 'Building', 'info')
+        __cmd = os.getcwd()
         for widget in self.KV_FILES:
-            Builder.load_file(widget)
+            Builder.load_file(os.path.join(__cmd, 'libs', 'uix', widget))
         for key, widgets in self.CLASSES.items():
-            Factory.register(key, module=widgets)
-        Window.clearcolor = (1, 1, 1, 1) if ThemeManager().theme_style == 'Light' else (0, 0, 0, 1)
-        Window.borderless = False
-        Window.resizable = True
-        await self.start()
+            Factory.register(key, module='.'.join(('libs', 'uix', widgets)))
+        Window.clearcolor = self.theme_cls.backgroundColor
+        self.theme_cls.bind(backgroundColor=lambda i, v, w=Window: setattr(w, 'clearcolor', v))
 
-    async def start(self):
         __switch_to_home = False
         if USERS.logged():
-            if USERS.user.keep_logged:
+            if USERS.keep_logged:
                 USERS.decrypt_database()
                 __switch_to_home = True
         self.SCREENS['login'] = Factory.LoginScreen(name="login")
@@ -154,16 +135,18 @@ class AgendaMDApp(MDApp):
         if USERS.logged():
             USERS.encrypt_database()
 
-    def translation_init(self):
+    def global_init(self):
         self.translator = translator
         global_idmap['_'] = translator
+        global_idmap['settings'] = settings
+        global_idmap['USERS'] = USERS
+        global_idmap['CONFIG'] = CONFIG
+        global_idmap['TASKS'] = TASKS
+        global_idmap['TAGS'] = TAGS
 
 
 if __name__ == "__main__":
-    try:
-        log('Master', 'Initializing App.', 'info')
-        app = AgendaMDApp()
-        log('Master', 'Running App.', 'info')
-        trio.run(app.app_func)
-    finally:
-        os.environ['CLOSED'] = 'True'
+    log('Master', 'Initializing App.', 'info')
+    app = AgendaMDApp()
+    log('Master', 'Running App.', 'info')
+    app.run()

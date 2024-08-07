@@ -1,12 +1,12 @@
 from kivy.compat import iteritems
-from kivy.uix.screenmanager import ScreenManagerException, Screen, ScreenManager
+from kivy.uix.screenmanager import ScreenManagerException, Screen, TransitionBase
 from kivymd.uix.screenmanager import MDScreenManager
 
 
 class MainScreenManager(MDScreenManager):
 
     def switch_to(self, screen, **options):
-        '''Add a new or existing screen to the ScreenManager and switch to it.
+        """Add a new or existing screen to the ScreenManager and switch to it.
         The previous screen will be "switched away" from. `options` are the
         :attr:`transition` options that will be changed before the animation
         happens.
@@ -29,7 +29,7 @@ class MainScreenManager(MDScreenManager):
         current screen.
 
         .. versionadded: 1.8.0
-        '''
+        """
         assert screen is not None
 
         if isinstance(screen, str):
@@ -60,6 +60,9 @@ class MainScreenManager(MDScreenManager):
                 old_attributes[key] = getattr(self.transition, key)
                 setattr(self.transition, key, value)
 
+        if not isinstance(self.transition, TransitionBase):
+            return
+
         # add and leave if we are set as the current screen
         if screen.manager is not self:
             self.add_widget(screen)
@@ -73,15 +76,15 @@ class MainScreenManager(MDScreenManager):
                 if old_current in self.children:
                     self.remove_widget(old_current)
                     self.transition = old_transition
-                    for key, value in iteritems(old_attributes):
-                        setattr(self.transition, key, value)
+                    for ikey, ivalue in iteritems(old_attributes):
+                        setattr(self.transition, ikey, ivalue)
                 transition.unbind(on_complete=remove_old_screen)
             self.transition.bind(on_complete=remove_old_screen)
         else:
             def change_transition(transition):
                 self.transition = old_transition
-                for key, value in iteritems(old_attributes):
-                    setattr(self.transition, key, value)
+                for ikey, ivalue in iteritems(old_attributes):
+                    setattr(self.transition, ikey, ivalue)
                 transition.unbind(on_complete=change_transition)
             self.transition.bind(on_complete=change_transition)
 

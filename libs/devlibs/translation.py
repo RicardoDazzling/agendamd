@@ -1,3 +1,5 @@
+__all__ = ["Translator", "translator"]
+
 import gettext
 import glob
 import os
@@ -10,16 +12,19 @@ from kivy.properties import OptionProperty
 from libs.applibs.db.config import CONFIG
 
 
-__all__ = ["Translator", "translator"]
+local_edit = os.path.join('assets', 'translations')
+domain = 'messages'
+translations: list[str] = os.listdir(os.path.join(os.getcwd(), local_edit))
 
 
 class Translator(EventDispatcher):
 
-    language = OptionProperty("en_US", options=['en_US', 'pt_BR'])
-    domain = 'messages'
-    local_edit = 'assets\\translations'
+    language = OptionProperty(translations[0], options=translations)
 
     def __init__(self, **kwargs):
+        self.local_edit = local_edit
+        self.domain = domain
+        self.translations = translations
         super().__init__(**kwargs)
         self.observers = []
         self.gettext = lambda message: message
@@ -48,7 +53,7 @@ class Translator(EventDispatcher):
 
         for func, args, kwargs in self.observers:
             try:
-                func(*args, None, None)
+                func(*args)
             except ReferenceError:
                 continue
 
@@ -71,8 +76,17 @@ class Translator(EventDispatcher):
             if remove_po_files:
                 os.remove(filename)
 
+    def bind_and_return_text(self, widget, text: str, property_name='text') -> str:
+        self.bind(lambda t, w, s, n="text": w.__setattr__(n, t(s)), self, widget, text, property_name)
+        return self(text)
 
-if "_" not in globals():
+    def bind_translation(self, widget, property_name: str, text: str):
+        self.bind(lambda t, w, n, s: w.__setattr__(n, t(s)), self, widget, property_name, text)
+        setattr(widget, property_name, self(text))
+        return widget
+
+
+if "translator" not in globals():
     translator = Translator()
     translator.compile_languages()
     translator.language = CONFIG.language

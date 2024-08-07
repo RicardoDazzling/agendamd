@@ -5,7 +5,7 @@ from kivymd.uix.textfield import MDTextField, MDTextFieldHelperText
 
 from libs.applibs.exceptions.login import PasswordException, EMailException, UserNotExistException, \
     TooLongPasswordException
-from libs.uix.components.login.login_components import LoginSnackbar
+from libs.uix.components.login.snackbar import LoginSnackbar
 from globals import translator as _
 
 
@@ -19,6 +19,12 @@ class LoginScreen(MDScreen):
                                       action_text="Registrar",
                                       action=self.goto_register)
         self.bind(on_pre_leave=lambda _self: self.clean(True))
+        
+    def on_pre_leave(self, *args):
+        super().on_pre_leave(*args)
+        __cb_keep = self.ids.get('cb_keep', None)
+        if __cb_keep is not None:
+            __cb_keep.active = USERS.keep_logged
 
     def login(self,
               tf_email: MDTextField,

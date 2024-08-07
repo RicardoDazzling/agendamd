@@ -2,44 +2,46 @@ from typing import Optional, Literal, Union
 from datetime import date, time
 
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty, BooleanProperty
+from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField, MDTextFieldLeadingIcon, MDTextFieldHintText, MDTextFieldMaxLengthText
 
-from globals import TAGS, translator as _
+from globals import TAGS, USERS, CONFIG, translator as _
 from libs.applibs.utils import get_datestamp_from_date, get_date_from_datestamp
-from libs.uix.components.home import CalendarItem
+from libs.uix.components.dashboard import CalendarItem
 from libs.uix.components.textfields import DateTimeTextField, ComboTextField
 
-from .task_dialog_error_flags import *
+from .flags import *
 
 
 class TaskDialogContent(MDBoxLayout):
+    _max_title_size: int = NumericProperty(20)
+    _max_description_size: int = NumericProperty(80)
+    _max_tag_size: int = NumericProperty(20)
     focus: bool = BooleanProperty(False)
     focus_next = ObjectProperty(StopIteration)
     focus_previous = ObjectProperty(StopIteration)
 
     def __init__(self, item: Optional[CalendarItem] = None, **kwargs):
         super(TaskDialogContent, self).__init__(**kwargs)
+        if USERS.logged():
+            self._max_title_size = USERS.task_max_title_size
+            self._max_description_size = USERS.task_max_description_size
+            self._max_tag_size = USERS.task_max_tag_size
+        self._title_max_length_text = MDTextFieldMaxLengthText(max_text_length=int(self._max_title_size))
         self._title = MDTextField(
             MDTextFieldLeadingIcon(
                 icon="alphabetical-variant",
             ),
-            MDTextFieldHintText(
-                text=_("Title"),
-            ),
-            MDTextFieldMaxLengthText(
-                max_text_length=int(CONFIG.task_max_title_size),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "Title"),
+            self._title_max_length_text,
             mode="outlined"
         )
         self._day = DateTimeTextField(
             MDTextFieldLeadingIcon(
                 icon="calendar-outline",
             ),
-            MDTextFieldHintText(
-                text=_("Date"),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "Date"),
             mode="outlined",
             datetime_mode="date",
             locale=CONFIG.language
@@ -48,9 +50,7 @@ class TaskDialogContent(MDBoxLayout):
             MDTextFieldLeadingIcon(
                 icon="calendar-outline",
             ),
-            MDTextFieldHintText(
-                text=_("Start"),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "Start"),
             mode="outlined",
             datetime_mode="time",
             locale=CONFIG.language
@@ -59,38 +59,31 @@ class TaskDialogContent(MDBoxLayout):
             MDTextFieldLeadingIcon(
                 icon="calendar-outline",
             ),
-            MDTextFieldHintText(
-                text=_("End"),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "End"),
             mode="outlined",
             datetime_mode="time",
             locale=CONFIG.language
         )
+        self._description_max_length_text = MDTextFieldMaxLengthText(max_text_length=int(self._max_description_size))
         self._description = MDTextField(
-            MDTextFieldHintText(
-                text=_("Description"),
-            ),
-            MDTextFieldMaxLengthText(
-                max_text_length=int(CONFIG.task_max_description_size),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "Description"),
+            self._description_max_length_text,
             mode="outlined",
             multiline=True,
             max_height=dp(200)
         )
+        self._tag_max_length_text = MDTextFieldMaxLengthText(max_text_length=int(self._max_tag_size))
         self._tag = ComboTextField(
             MDTextFieldLeadingIcon(
                 icon="tag-hidden",
             ),
-            MDTextFieldHintText(
-                text=_("Tag"),
-            ),
-            MDTextFieldMaxLengthText(
-                max_text_length=int(CONFIG.task_max_tag_size),
-            ),
+            _.bind_translation(MDTextFieldHintText(), "text", "Tag"),
+            self._tag_max_length_text,
             data=list(TAGS),
             accept_unknown=True,
             mode="outlined"
         )
+        TAGS.bind(on_data=self._update_tag_data)
         if item is not None:
             self.complete_by_item(item)
 
@@ -120,6 +113,10 @@ class TaskDialogContent(MDBoxLayout):
         self._description.bind(on_text_validate=lambda x: self.change_focus("tag"))
         self._tag.bind(on_text_validate=lambda x: self.dispatch("on_text_validate"))
 
+        USERS.bind(on_task_max_title_size=lambda v: self.setter('_max_title_size')(self, v),
+                   on_task_max_description_size=lambda v: self.setter('_max_description_size')(self, v),
+                   on_task_max_tag_size=lambda v: self.setter('_max_tag_size')(self, v))
+
         def _set_outline(instance: Union[DateTimeTextField, ComboTextField], value):
             __icon = instance.leading_icon
             hyphen = '-hidden' if 'tag' in __icon else '-outline'
@@ -144,6 +141,32 @@ class TaskDialogContent(MDBoxLayout):
 
     def on_text_validate(self):
         pass
+
+    @staticmethod
+    def on__max_title_size(self, value: int):
+        self.set_new_max_length(value, 'title')
+
+    @staticmethod
+    def on__max_description_size(self, value: int):
+        self.set_new_max_length(value, 'description')
+
+    @staticmethod
+    def on__max_tag_size(self, value: int):
+        self.set_new_max_length(value, 'tag')
+
+    def set_new_max_length(self, value: int, property_name: Literal['title', 'description', 'tag']):
+        __text_field = getattr(self, f"_{property_name}", None)
+        if __text_field is None:
+            return
+        __length_text_name = f'_{property_name}_max_length_text'
+        __length_text = self.__getattribute__(__length_text_name)
+        __text_field.remove_widget(__length_text)
+        __length_text = MDTextFieldMaxLengthText(max_text_length=value)
+        self.__setattr__(__length_text_name, __length_text)
+        __text_field.add_widget(__length_text)
+
+    def _update_tag_data(self, new_data: list):
+        self._tag.data = new_data
 
     def complete_by_item(self, item: CalendarItem):
         self.clean(text=False, datetime=False)
@@ -176,7 +199,7 @@ class TaskDialogContent(MDBoxLayout):
 
     def get_error_flags(self) -> list:
         __flags = []
-        if 3 > len(str(self._title.text)) > int(CONFIG.task_max_title_size):
+        if 3 > len(str(self._title.text)) > int(USERS.task_max_title_size):
             self._title.error = True
             __flags.append(TitleOutOfRange())
         else:
@@ -200,10 +223,10 @@ class TaskDialogContent(MDBoxLayout):
         else:
             self._end.error = True
             __flags.append(EndIsRequired())
-        if len(self._description.text) > int(CONFIG.task_max_description_size):
+        if len(self._description.text) > int(USERS.task_max_description_size):
             __flags.append(DescriptionOutOfRange())
         if self._tag.selected is None:
-            if 3 > len(self._tag.text) > int(CONFIG.task_max_tag_size):
+            if 3 > len(self._tag.text) > int(USERS.task_max_tag_size):
                 self._tag.error = True
                 __flags.append(TagOutOfRange())
             else:

@@ -5,7 +5,7 @@ from kivy.clock import Clock
 from kivy.properties import ColorProperty, ObjectProperty
 from kivymd.uix.label import MDLabel
 
-from libs.uix.components.home.base_calendar_item import BaseCalendarItem
+from libs.uix.components.dashboard.base_calendar_item import BaseCalendarItem
 
 from .calendar_item_nav import CalendarItemNav
 
@@ -18,6 +18,8 @@ class CalendarItem(BaseCalendarItem):
                  *args,
                  item: Optional[dict] = None,
                  **kwargs):
+        self.on_title = partial(self.update_label, 'lbl_title')
+        self.on_tag = partial(self.update_label, 'lbl_tag')
         super(CalendarItem, self).__init__(*args, **kwargs)
 
         if item is not None:
@@ -33,6 +35,7 @@ class CalendarItem(BaseCalendarItem):
                                         text=self.description)
 
         self.bind(description=self._lbl_description.setter('text'), closed=self.on_closed)
+        self.theme_cls.bind(theme_style=lambda: self.set_theme_color(self._theme_text_color))
 
     @staticmethod
     def update_label(label_name: str, self, value: str):
@@ -41,15 +44,12 @@ class CalendarItem(BaseCalendarItem):
             return
         __lbl.text = value
 
-    on_title = partial(update_label, 'lbl_title')
-    on_tag = partial(update_label, 'lbl_tag')
-
     def on_release(self, *args) -> None:
         super(CalendarItem, self).on_release(*args)
         self.dispatch("on_item_release")
 
-    def on_press(self, *args) -> None:
-        super(CalendarItem, self).on_press(*args)
+    def on_press(self) -> None:
+        super(CalendarItem, self).on_press()
         self.dispatch("on_item_press")
 
     def add_widget(self, widget, *args, **kwargs):
@@ -69,10 +69,11 @@ class CalendarItem(BaseCalendarItem):
 
     @staticmethod
     def on_height(self, value: int):
-        label = self.ids.get('lbl_description', None)
-        if value >= self.base_height and label is None:
+        if self._lbl_description is None:
+            return
+        if value >= self.base_height and self._lbl_description.parent is None:
             Clock.schedule_once(lambda x: self.ids.box_description.add_widget(self._lbl_description))
-        elif value < self.base_height and label is not None:
+        elif value < self.base_height and self._lbl_description.parent is not None:
             Clock.schedule_once(lambda x: self.ids.box_description.remove_widget(self._lbl_description))
 
     @staticmethod
@@ -96,10 +97,13 @@ class CalendarItem(BaseCalendarItem):
             return
         self.on_theme_text_color(self, 'Custom')
 
+    _theme_text_color = 'Primary'
+
     def set_theme_color(self, value: Literal['Primary', 'Hint', 'Error', 'Custom']):
         __bg_color = None
         __custom_color = None
         __value = value
+        self._theme_text_color = value
 
         if value in ['Hint', 'Error', 'Custom']:
             if value == 'Custom':
