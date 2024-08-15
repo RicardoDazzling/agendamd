@@ -223,6 +223,18 @@ msgstr ""
 msgid "Task Tag max size."
 msgstr ""
 
+#: 33
+msgid "Selected: {}"
+msgstr ""
+
+#: 13
+msgid "Search"
+msgstr ""
+
+#: 33
+msgid "Closed"
+msgstr ""
+
 #: libs/uix/login/login/login.kv:7
 msgid "Login"
 msgstr "Login"

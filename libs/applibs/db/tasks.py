@@ -128,7 +128,7 @@ class Tasks:
         __df_isin_all = __df_isin.all(axis=1)
         __s = __df.loc[__df_isin_all]
         __index = __s.index
-        __df.drop(__index)
+        __df = __df.drop(index=__index)
         if __df.empty:
             os.remove(__month_folder)
         else:
@@ -171,8 +171,7 @@ class Tasks:
 
     def get_all(self):
         USERS.logged(raise_exception=True)
-        __now = datetime.today()
-        __path = os.listdir(self.task_dir)
+        __path = self.list_dir
 
         __df = None
         for folder in __path:
@@ -278,6 +277,9 @@ class Tasks:
                     with open(__file, 'wb') as f:
                         np.save(f, __array)
 
+    @property
+    def list_dir(self) -> list:
+        return os.listdir(self.task_dir)
 
 if 'TASKS' not in globals():
     TASKS = Tasks()

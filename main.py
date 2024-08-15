@@ -51,6 +51,7 @@ class AgendaMDApp(MDApp):
         "login\\register\\register.kv",
         "home\\home.kv",
         "home\\nav\\dashboard\\dashboard.kv",
+        "home\\nav\\list\\list.kv",
         "home\\nav\\config\\config.kv",
     ]
 
@@ -63,10 +64,11 @@ class AgendaMDApp(MDApp):
         "LoginPasswordTextField": "components.login",
         "LoginFormButton": "components.login",
         "MDStaticCard": "components.home",
-        "BaseCalendarItem": "components.home",
-        "CalendarItem": "components.home",
-        "CalendarItemNav": "components.home",
+        "BaseCalendarItem": "components.dashboard",
+        "CalendarItem": "components.dashboard",
+        "CalendarItemNav": "components.dashboard",
         "MinimizedCalendarItem": "components.home",
+        "ListItem": "components.list",
         "ConfigButtonText": "components.config",
         "ConfigCardHeader": "components.config",
         "ConfigItem": "components.config",
@@ -75,6 +77,7 @@ class AgendaMDApp(MDApp):
         "RegisterScreen": "login",
         "HomeScreen": "home",
         "DashboardScreen": "home.nav",
+        "ListScreen": "home.nav",
         "ConfigScreen": "home.nav",
     }
 

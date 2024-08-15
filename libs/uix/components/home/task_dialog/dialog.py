@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty
@@ -24,7 +24,12 @@ class TaskDialog(MDDialog):
     content = ObjectProperty(None)
     item = ObjectProperty(None, allownone=True)
 
-    def __init__(self, item: Optional[CalendarItem] = None, **kwargs):
+    def __init__(self, item: Union[CalendarItem, dict, None] = None, **kwargs):
+        self.register_event_type('on_accept')
+        self.register_event_type('on_cancel')
+        self.register_event_type('on_remove')
+        if isinstance(item, CalendarItem):
+            item = item.dict
         self._dialog_content = TaskDialogContent(
             item=item,
             orientation='vertical',
@@ -158,13 +163,8 @@ class TaskDialog(MDDialog):
         self._new_tag_snackbar.dismiss()
         __tag_field: ComboTextField = self._dialog_content.get_field('tag')
         TAGS.add(__tag_field.text)
-        __data = __tag_field.data
-        if isinstance(__data, list):
-            __data = __data.copy()
-            __data.append(__tag_field.text)
-            __tag_field.data = __data
-        else:
-            __tag_field.data = [__tag_field.text]
+        __data = list(TAGS)
+        self.accept()
 
     @ignore_args
     def _snackbar_dismiss(self, snackbar: Literal['error', 'tag', 'remove'] = 'tag'):
@@ -187,13 +187,15 @@ class TaskDialog(MDDialog):
         if not isinstance(instance, MDSnackbarActionButton):
             self._rusure_snackbar.open()
             return
-        __task_dict = self.item.dict
+        __task_dict = self.item
         __task_dict["tag"] = TAGS.get(__task_dict["tag"])
         TASKS.remove(__task_dict)
         self.dismiss()
+        self.dispatch('on_remove')
 
     def cancel(self):
         self.dismiss()
+        self.dispatch('on_cancel')
 
     def accept(self):
         __flags = self._dialog_content.get_error_flags()
@@ -201,26 +203,38 @@ class TaskDialog(MDDialog):
             __messages = []
             for flag in __flags:
                 if isinstance(flag, TagNotExists):
-                    self._new_tag_snackbar.open()
+                    if self._new_tag_snackbar.parent is None:
+                        self._new_tag_snackbar.open()
                     return
                 __messages.append(flag.message)
             self._error_snackbar_text.text = ";\n".join(__messages) + "."
             self._error_snackbar.open()
             return
         __new_task_dict = self._dialog_content.to_dict()
+        __content_dict = __new_task_dict.copy()
         __new_task_dict["tag"] = TAGS.get(__new_task_dict["tag"])
         __new_task_dict["closed"] = False
         if self.item is not None:
-            __old_task_dict = self.item.dict
+            __old_task_dict = self.item
             __old_task_dict["tag"] = TAGS.get(__old_task_dict["tag"])
             TASKS[__old_task_dict] = __new_task_dict
         else:
             TASKS.add(__new_task_dict)
         self.dismiss()
+        self.dispatch('on_accept', __content_dict)
 
     def on_dismiss(self, *args) -> None:
         super(TaskDialog, self).on_dismiss(*args)
         self.clean()
+
+    def on_accept(self, content: dict):
+        pass
+
+    def on_cancel(self):
+        pass
+
+    def on_remove(self):
+        pass
 
     @ignore_args
     def on_new_tag(self):
@@ -229,8 +243,11 @@ class TaskDialog(MDDialog):
     @ignore_instance
     def on_item(self, value):
         if isinstance(value, CalendarItem):
+            self.item = value.dict
+            return
+        if isinstance(value, dict):
             self._dialog_content.complete_by_item(value)
         elif value is None:
             self._dialog_content.clean()
         else:
-            raise TypeError(f"The item need to be a CalendarItem. Give: '{type(value)}'.")
+            raise TypeError(f"The item need to be a CalendarItem, None or a Dict. Give: '{type(value)}'.")

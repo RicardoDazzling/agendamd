@@ -3,6 +3,7 @@ from typing import Optional, Literal
 
 from kivy.clock import Clock
 from kivy.properties import ColorProperty, ObjectProperty
+from kivy.uix.widget import WidgetException
 from kivymd.uix.label import MDLabel
 
 from libs.uix.components.dashboard.base_calendar_item import BaseCalendarItem
@@ -35,7 +36,7 @@ class CalendarItem(BaseCalendarItem):
                                         text=self.description)
 
         self.bind(description=self._lbl_description.setter('text'), closed=self.on_closed)
-        self.theme_cls.bind(theme_style=lambda: self.set_theme_color(self._theme_text_color))
+        self.theme_cls.bind(theme_style=lambda i, v: self.set_theme_color(self._theme_text_color))
 
     @staticmethod
     def update_label(label_name: str, self, value: str):
@@ -70,11 +71,33 @@ class CalendarItem(BaseCalendarItem):
     @staticmethod
     def on_height(self, value: int):
         if self._lbl_description is None:
+
+            def run_again(instance, i_value):
+                if i_value is not None:
+                    instance.on_height(instance, instance.height)
+                    instance.unbind(_lbl_description=run_again)
+
+            self.bind(_lbl_description=run_again)
             return
+
+        def add_widget(instance):
+            try:
+                self.ids.box_description.add_widget(self._lbl_description)
+            except WidgetException:
+                if instance:
+                    pass
+
+        def remove_widget(instance):
+            try:
+                self.ids.box_description.remove_widget(self._lbl_description)
+            except WidgetException:
+                if instance:
+                    pass
+
         if value >= self.base_height and self._lbl_description.parent is None:
-            Clock.schedule_once(lambda x: self.ids.box_description.add_widget(self._lbl_description))
+            Clock.schedule_once(add_widget)
         elif value < self.base_height and self._lbl_description.parent is not None:
-            Clock.schedule_once(lambda x: self.ids.box_description.remove_widget(self._lbl_description))
+            Clock.schedule_once(remove_widget)
 
     @staticmethod
     def on_ids(self, value: list):

@@ -83,8 +83,8 @@ class User:
                     self._bindings[key].remove(value)
 
     def match_password(self, new_password: str) -> bool:
-        __hash = self.hash(new_password) if not self.keep_logged else new_password
-        __comparison = self.password == __hash
+        __hash = self.hash(new_password) if self.password_string is None else new_password
+        __comparison = (self.password if self.password_string is None else self.password_string) == __hash
         if __comparison and self.password_string is None:
             self.update_password(new_password)
         return __comparison

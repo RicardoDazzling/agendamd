@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: AgendaMD 0.4.dev0\n"
+"Project-Id-Version: AgendaMD 0.6.dev0\n"
 "Report-Msgid-Bugs-To: ricardodazzling@gmail.com\n"
 "POT-Creation-Date: 2024-08-06 00:05-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -92,7 +92,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: libs/uix/components/home/task_dialog/content.py:91
+#: libs/uix/components/home/task_dialog/content.py:91 libs/uix/home/nav/list/list.kv: 49
 msgid "Tag"
 msgstr ""
 
@@ -209,6 +209,18 @@ msgstr ""
 
 #: libs/uix/home/nav/config/config.kv:94
 msgid "Task Tag max size."
+msgstr ""
+
+#: libs/uix/home/nav/list/list.py: 33
+msgid "Selected: {}"
+msgstr ""
+
+#: libs/uix/home/nav/list/list.kv: 13
+msgid "Search"
+msgstr ""
+
+#: libs/uix/home/nav/list/list.kv: 33
+msgid "Closed"
 msgstr ""
 
 #: libs/uix/login/login/login.kv:7

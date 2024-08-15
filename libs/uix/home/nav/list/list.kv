@@ -1,0 +1,62 @@
+
+
+<ListScreen>:
+    MDBoxLayout:
+        orientation: "vertical"
+        size_hint: 1, 1
+        padding: dp(8), dp(20), dp(20), dp(20)
+        spacing: dp(20)
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            spacing: dp(10)
+            MDTextField:
+                id: tf_search
+                mode: "outlined"
+                MDTextFieldLeadingIcon:
+                    icon: "magnify"
+                MDTextFieldHintText:
+                    text: _.bind_and_return_text(self, "Search")
+            MDBoxLayout:
+                adaptive_height: True
+                spacing: dp(10)
+                MDSwitch:
+                    id: swt_date
+                    adaptive_size: True
+                    active: True
+                MDButton:
+                    id: btn_date
+                    style: "text"
+                    adaptive_size: True
+                    on_release: root.on_btn_date_release()
+            MDBoxLayout:
+                adaptive_height: True
+                MDBoxLayout:
+                    adaptive_height: True
+                    spacing: dp(5)
+                    MDCheckbox:
+                        id: cb_closed
+                        adaptive_size: True
+                        active: False
+                    MDLabel:
+                        adaptive_height: True
+                        text: _.bind_and_return_text(self, "Closed")
+                MDBoxLayout:
+                    adaptive_height: True
+                    spacing: dp(5)
+                    MDDropDownItem:
+                        on_release: root.on_ddi_tag_release(self)
+                        MDDropDownItemText:
+                            id: ddi_tag
+                            text: "*"
+                    MDLabel:
+                        adaptive_height: True
+                        text: _.bind_and_return_text(self, "Tag")
+        MDScrollView:
+            size_hint: 1, 1
+            do_scroll_x: False
+            MDBoxLayout:
+                orientation: 'vertical'
+                adaptive_height: True
+                spacing: dp(10)
+                id: lyo_results

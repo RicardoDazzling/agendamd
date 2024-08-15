@@ -8,7 +8,6 @@ from kivymd.uix.textfield import MDTextField, MDTextFieldLeadingIcon, MDTextFiel
 
 from globals import TAGS, USERS, CONFIG, translator as _
 from libs.applibs.utils import get_datestamp_from_date, get_date_from_datestamp
-from libs.uix.components.dashboard import CalendarItem
 from libs.uix.components.textfields import DateTimeTextField, ComboTextField
 
 from .flags import *
@@ -22,7 +21,7 @@ class TaskDialogContent(MDBoxLayout):
     focus_next = ObjectProperty(StopIteration)
     focus_previous = ObjectProperty(StopIteration)
 
-    def __init__(self, item: Optional[CalendarItem] = None, **kwargs):
+    def __init__(self, item: Optional[dict] = None, **kwargs):
         super(TaskDialogContent, self).__init__(**kwargs)
         if USERS.logged():
             self._max_title_size = USERS.task_max_title_size
@@ -168,34 +167,46 @@ class TaskDialogContent(MDBoxLayout):
     def _update_tag_data(self, new_data: list):
         self._tag.data = new_data
 
-    def complete_by_item(self, item: CalendarItem):
+    def complete_by_item(self, item: dict):
         self.clean(text=False, datetime=False)
 
-        self._title.text = "" if item.title is None else item.title
+        __title_text = item.get('title', '')
+        if isinstance(__title_text, str):
+            __title_text = __title_text.strip()
+        self._title.text = __title_text if __title_text else ''
 
-        if item.day is not None:
-            self._day.date = get_date_from_datestamp(item.day)
+        __day: Optional[int] = item.get('day', None)
+        if __day is not None:
+            self._day.date = get_date_from_datestamp(__day)
         else:
             self._day.text = ""
             self._day.date = None
 
-        if item.start is not None:
-            hour, minute = divmod(item.start, 60)
+        __start: Optional[int] = item.get('start', None)
+        if __start is not None:
+            hour, minute = divmod(__start, 60)
             self._start.time = time(hour=hour, minute=minute)
         else:
             self._start.text = ""
             self._start.time = None
 
-        if item.end is not None:
-            hour, minute = divmod(item.end, 60)
+        __end: Optional[int] = item.get('end', None)
+        if __end is not None:
+            hour, minute = divmod(__end, 60)
             self._end.time = time(hour=hour, minute=minute)
         else:
             self._end.text = ""
             self._end.time = None
 
-        self._description.text = "" if item.description is None else item.description
+        __description_text = item.get('description', '')
+        if isinstance(__description_text, str):
+            __description_text = __description_text.strip()
+        self._description.text = __description_text if __description_text else ''
 
-        self._tag.text = "" if item.tag is None else item.tag
+        __tag_text = item.get('tag', '')
+        if isinstance(__tag_text, str):
+            __tag_text = __tag_text.strip()
+        self._tag.text = __tag_text if __tag_text else ""
 
     def get_error_flags(self) -> list:
         __flags = []

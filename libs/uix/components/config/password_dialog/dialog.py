@@ -70,7 +70,6 @@ class PasswordDialog(MDDialog):
         self._content.focus_next = self._btn_cancel
         self._error_snackbar_text = MDSnackbarSupportingText(
             text="Error!!!!",
-            padding=[0, 0, 0, dp(56)],
         )
         self._error_snackbar = MDSnackbar(
             _.bind_translation(MDSnackbarText(), "text", "Errors occurred in the task creation:"),
@@ -82,7 +81,7 @@ class PasswordDialog(MDDialog):
                     on_release=partial(self._snackbar_dismiss, snackbar="error")
                 ),
             ),
-            y=dp(124),
+            y=dp(20),
             pos_hint={"center_x": 0.5},
             size_hint_x=0.5,
             padding=[0, 0, "8dp", "8dp"],
@@ -122,5 +121,5 @@ class PasswordDialog(MDDialog):
         return
 
     def on_dismiss(self, *args) -> None:
-        super(TaskDialog, self).on_dismiss(*args)
+        super(PasswordDialog, self).on_dismiss(*args)
         self.clean()

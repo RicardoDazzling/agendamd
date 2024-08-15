@@ -10,7 +10,7 @@ from kivy.logger import Logger
 from kivy.properties import OptionProperty
 
 from libs.applibs.db.config import CONFIG
-
+from settings import settings
 
 local_edit = os.path.join('assets', 'translations')
 domain = 'messages'
@@ -18,8 +18,9 @@ translations: list[str] = os.listdir(os.path.join(os.getcwd(), local_edit))
 
 
 class Translator(EventDispatcher):
-
     language = OptionProperty(translations[0], options=translations)
+    messages = []
+    catalogs = {}
 
     def __init__(self, **kwargs):
         self.local_edit = local_edit
@@ -30,7 +31,13 @@ class Translator(EventDispatcher):
         self.gettext = lambda message: message
 
     def _(self, message):
-        return self.gettext(message)
+        __text = self.gettext(message)
+        if settings.DEBUG:
+            if self.language in self.catalogs:
+                __message = self.catalogs[self.language].get(message)
+                if __message is None:
+                    Logger.warning("Translator: message \"%s\" not in .po file." % message)
+        return __text
 
     translate = _
     __call__ = translate
@@ -60,13 +67,15 @@ class Translator(EventDispatcher):
     def compile_languages(self, remove_po_files=False):
         for filename in glob.glob(f'{self.local_edit}/*/LC_MESSAGES/{self.domain}.po'):
             language = filename[
-                len(f'{self.local_edit}/'):-len(f'/LC_MESSAGES/{self.domain}.po')
-            ]
+                       len(f'{self.local_edit}/'):-len(f'/LC_MESSAGES/{self.domain}.po')
+                       ]
 
             Logger.info('Translator: Compiling language %s...', language)
 
             with open(filename, 'rb') as po_file:
                 catalog = pofile.read_po(po_file, locale=language)
+            if settings.DEBUG:
+                self.catalogs[language] = catalog
 
             mo_filename = filename.replace('.po', '.mo')
 
@@ -77,7 +86,7 @@ class Translator(EventDispatcher):
                 os.remove(filename)
 
     def bind_and_return_text(self, widget, text: str, property_name='text') -> str:
-        self.bind(lambda t, w, s, n="text": w.__setattr__(n, t(s)), self, widget, text, property_name)
+        self.bind(lambda t, w, s, n=property_name: w.__setattr__(n, t(s)), self, widget, text, property_name)
         return self(text)
 
     def bind_translation(self, widget, property_name: str, text: str):

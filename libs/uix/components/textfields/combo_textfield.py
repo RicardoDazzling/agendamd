@@ -64,8 +64,10 @@ class ComboTextField(MDTextField):
     def on_data(self, value: list):
         if not isinstance(value, list):
             raise TypeError("Data isn't a list instance.")
-        if self.text == "" and value:
+        if value:
             self.items = self.get_items_from_list(value)
+        else:
+            self.items = []
 
     @staticmethod
     def on_text(self, value: str, skip: bool = False):
@@ -107,8 +109,11 @@ class ComboTextField(MDTextField):
             __item = {'text': values[idx],
                       "trailing_icon_color": self.theme_cls.primaryColor,
                       "on_release": partial(self.set_item, idx)}
-            if idx == 0:
+            if idx == 0 and self.text not in values:
                 self._last_selected_idx = 0
+                __item["trailing_icon"] = "circle"
+            elif values[idx] == self.text:
+                self._last_selected_idx = idx
                 __item["trailing_icon"] = "circle"
             __draft.append(__item)
         return __draft

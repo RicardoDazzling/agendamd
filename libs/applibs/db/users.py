@@ -35,7 +35,7 @@ class Users:
     def __getattr__(self, name: str):
         if self._user.password_string is not None:
             return getattr(self._user, name)
-        raise NameError("Unknown property for user(s).")
+        raise NameError(f"Unknown property for user(s): '{name}'")
 
     def __setattr__(self, name: str, value):
         if self._user.password_string is not None and hasattr(self._user, name):
@@ -114,8 +114,8 @@ class Users:
 
         CONFIG.keep_logged = keep_logged
 
-        self._user = User(keep_logged=CONFIG.keep_logged, _bindings=self._user.bindings,
-                          name=name, email=email, password_string=password,)
+        self._user = User(keep_logged=CONFIG.keep_logged, _bindings=self._user.bindings)
+        self._user.name, self._user.email, self._user.password_string = name, email, password
         self.save()
         self._list_path.append(email + ".json")
         CONFIG.default_user = email

@@ -69,7 +69,7 @@ class ConfigScreen(MDScreen):
     @ignore_instance
     def on__swt_dark_mode(self, value: ConfigSwitch):
         value.active = CONFIG.dark_mode
-        value.bind(active=lambda i, v: self.set_dark_mode(active=v))
+        value.bind(active=lambda i=None, v=value.active: self.set_dark_mode(active=v))
 
     @ignore_instance
     def on__itm_language(self, value: ConfigItem):

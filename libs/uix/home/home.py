@@ -10,7 +10,7 @@ from typing import Optional, Literal
 from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 from globals import translator as _
-from libs.uix.home.nav import DashboardScreen, ConfigScreen
+from libs.uix.home.nav import DashboardScreen, ListScreen, ConfigScreen
 from libs.uix.components.home.task_dialog import TaskDialog
 
 
@@ -22,6 +22,7 @@ class HomeScreen(MDScreen):
         super().__init__(*args, **kwargs)
         self.task_dialog = TaskDialog()
         self._dashboard_screen = DashboardScreen(name='dashboard', _task_dialog=self.task_dialog)
+        self._list_screen = ListScreen(name='list', _task_dialog=self.task_dialog)
         self._config_screen = ConfigScreen(name='config')
         self._not_implemented_snackbar = MDSnackbar(
             _.bind_translation(MDSnackbarText(), 'text', "This feature isn't implemented yet."),
@@ -86,6 +87,7 @@ class HomeScreen(MDScreen):
         if self._screen_manager.screen_names:
             return
         self._screen_manager.add_widget(self._dashboard_screen)
+        self._screen_manager.add_widget(self._list_screen)
         self._screen_manager.add_widget(self._config_screen)
 
     def _remove_screens(self):
@@ -94,6 +96,7 @@ class HomeScreen(MDScreen):
         if not self._screen_manager.screen_names:
             return
         self._screen_manager.remove_widget(self._config_screen)
+        self._screen_manager.remove_widget(self._list_screen)
         self._screen_manager.remove_widget(self._dashboard_screen)
 
     def _goto(self, screen_name: Literal['dashboard', 'list', 'inbox'],
@@ -106,6 +109,9 @@ class HomeScreen(MDScreen):
             if self._not_implemented_snackbar.parent is None:
                 self._not_implemented_snackbar.open()
             instance.active = False
+            __old_instance = self.ids.get(self.active_item + '_item', None)
+            if __old_instance is not None:
+                __old_instance.active = True
             return
         __screen_names = ['dashboard', 'list', 'inbox', 'config']
         if __screen_names.index(screen_name) < __screen_names.index(self._screen_manager.current):

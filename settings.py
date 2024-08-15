@@ -8,10 +8,12 @@ from appdirs import user_cache_dir
 
 
 class Settings:
-    def __init__(self):
-        self.NAME: str = "AgendaMD"
-        self.CACHE_DIR: str = user_cache_dir(self.NAME.lower(), opinion=False)
 
+    NAME: str = "AgendaMD"
+    CACHE_DIR: str = user_cache_dir(NAME.lower(), opinion=False)
+    DEBUG: bool = True
+
+    def __init__(self):
         if not os.path.exists(self.CACHE_DIR):
             os.makedirs(self.CACHE_DIR)
         if not os.path.exists(os.path.join(self.CACHE_DIR, 'db')):

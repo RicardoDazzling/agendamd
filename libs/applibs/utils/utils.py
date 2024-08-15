@@ -109,10 +109,14 @@ def array_size(integer: int) -> Literal["B", "H", "I", "L"]:
 
 
 def get_datestamp_from_date(date_object: date) -> int:
+    if not isinstance(date_object, date):
+        raise ValueError("Conversion failed: is not instance of datetime date.")
     return (date_object - date.fromtimestamp(0)).days
 
 
 def get_date_from_datestamp(datestamp: int) -> date:
+    if not isinstance(datestamp, int):
+        raise ValueError("Conversion failed: is not a datestamp.")
     return date.fromtimestamp(0) + timedelta(days=datestamp)
 
 

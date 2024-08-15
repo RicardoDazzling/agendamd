@@ -94,7 +94,7 @@ class PasswordDialogContent(MDBoxLayout):
             self._repeat.error = False
         if __have_empty_fields:
             return EmptyFieldsException
-        if not USERS.compare_password(__current):
+        if not USERS.match_password(__current):
             return PasswordException
         __password_out_of_range = False
         if len(__new) > 32:

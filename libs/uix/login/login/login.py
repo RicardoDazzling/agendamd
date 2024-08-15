@@ -5,6 +5,7 @@ from kivymd.uix.textfield import MDTextField, MDTextFieldHelperText
 
 from libs.applibs.exceptions.login import PasswordException, EMailException, UserNotExistException, \
     TooLongPasswordException
+from libs.applibs.utils import ignore_args
 from libs.uix.components.login.snackbar import LoginSnackbar
 from globals import translator as _
 
@@ -66,6 +67,7 @@ class LoginScreen(MDScreen):
         self.ids.tf_email.error = self.ids.tf_password.error = False
         self.ids.help_email.text = self.ids.help_password.text = ""
 
+    @ignore_args
     def goto_register(self):
         register_screen = self.manager.get_screen("register")
 
@@ -74,5 +76,6 @@ class LoginScreen(MDScreen):
 
         self.manager.switch_to("register")
 
+    @ignore_args
     def goto_main(self):
         self.manager.switch_to("home")

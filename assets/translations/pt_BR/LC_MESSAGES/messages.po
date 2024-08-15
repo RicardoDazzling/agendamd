@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: AgendaMD 0.2\n"
+"Project-Id-Version: AgendaMD 0.6.dev0\n"
 "Report-Msgid-Bugs-To: ricardodazzling@gmail.com\n"
 "POT-Creation-Date: 2024-08-06 00:05-0300\n"
-"PO-Revision-Date: 2024-06-30 12:37-0300\n"
+"PO-Revision-Date: 2024-08-11 12:37-0300\n"
 "Last-Translator: Ricardo Állan <ricardodazzling@gmail.com>\n"
 "Language: pt_BR\n"
 "Language-Team: pt_BR <LL@li.org>\n"
@@ -216,6 +216,18 @@ msgstr "Tamanho máximo da Descrição da Tarefa"
 #: libs/uix/home/nav/config/config.kv:94
 msgid "Task Tag max size."
 msgstr "Tamanho máximo do Nome do Grupo da Tarefa"
+
+#: 33
+msgid "Selected: {}"
+msgstr "Selecionadas: {}"
+
+#: 13
+msgid "Search"
+msgstr "Pesquisar"
+
+#: 33
+msgid "Closed"
+msgstr "Finalizadas"
 
 #: libs/uix/login/login/login.kv:7
 msgid "Login"

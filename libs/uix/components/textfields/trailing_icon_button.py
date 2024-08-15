@@ -27,8 +27,9 @@ class MDTextFieldTrailingIconButton(MDTextFieldTrailingIcon, EventDispatcher):
         button = args[3]
         if self.text_field is not None and button == 'left':
             txt = self.text_field
-            x_start = (txt.width + txt.x) - (self.texture_size[1]) - dp(14)
-            y_start = (txt.center_y - self.texture_size[1] / 2)
+            __x_relative, __center_y_relative = self.to_window(txt.x, txt.center_y)
+            x_start = (txt.width + __x_relative) - (self.texture_size[1]) - dp(14)
+            y_start = (__center_y_relative - self.texture_size[1] / 2)
             x_end = x_start + self.texture_size[0]
             y_end = y_start + self.texture_size[1]
             if x_start <= Window.mouse_pos[0] <= x_end and y_start <= Window.mouse_pos[1] <= y_end:
